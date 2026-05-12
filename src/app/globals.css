@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf8f3;
+  --foreground: #172426;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-source-serif);
+  --font-serif: var(--font-garamond);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-source-serif), Georgia, serif;
+}
+
+::selection {
+  background: #f0dfc2;
+  color: #172426;
+}
+
+button,
+a,
+input,
+textarea {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+}
