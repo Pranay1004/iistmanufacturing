@@ -71,7 +71,54 @@ export const facilities = [
   },
 ];
 
-export const industrialVisits = ["VSSC", "LPSC", "SDSC-SHAR", "URSC", "SAC"];
+export const industrialVisits = ["CMSE", "IISU", "VSSC", "LPSC"];
+
+export const btechProjects = [
+  {
+    slug: "btech-2026-lightweight-tooling",
+    owner: "B.Tech Project Team 01",
+    program: "B.Tech",
+    batch: "2026",
+    specialization: "Lightweight tooling",
+    title: "Lightweight tooling concept for composite layup",
+    summary:
+      "A reserved undergraduate project dossier for tooling design, fixture planning, and documentation around aerospace composite manufacturing.",
+    status: "Concept" as const,
+  },
+  {
+    slug: "btech-2026-metrology-fixture",
+    owner: "B.Tech Project Team 02",
+    program: "B.Tech",
+    batch: "2026",
+    specialization: "Metrology and inspection",
+    title: "Inspection fixture and measurement workflow",
+    summary:
+      "A future undergraduate project slot for repeatable measurement planning, tolerance checks, and inspection-ready manufacturing records.",
+    status: "Concept" as const,
+  },
+  {
+    slug: "btech-2025-printer-process-window",
+    owner: "B.Tech Project Team 03",
+    program: "B.Tech",
+    batch: "2025",
+    specialization: "Additive manufacturing",
+    title: "Polymer 3D printing process window study",
+    summary:
+      "A placeholder for undergraduate work on print parameter variation, dimensional accuracy, surface finish, and process documentation.",
+    status: "Concept" as const,
+  },
+  {
+    slug: "btech-2025-quality-dashboard",
+    owner: "B.Tech Project Team 04",
+    program: "B.Tech",
+    batch: "2025",
+    specialization: "Quality engineering",
+    title: "Manufacturing quality dashboard prototype",
+    summary:
+      "A future project dossier for visualizing nonconformance categories, inspection checkpoints, and corrective action tracking.",
+    status: "Concept" as const,
+  },
+];
 
 export const curriculum = {
   vision:
