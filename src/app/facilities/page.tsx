@@ -4,9 +4,9 @@ import { facilities, industrialVisits } from "@/lib/data";
 export default function FacilitiesPage() {
   return (
     <PageFrame>
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Facilities</p>
-        <h1 className="mt-4 max-w-4xl font-serif text-5xl font-semibold leading-tight">
+        <h1 className="mt-4 max-w-4xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
           Labs, equipment culture, and ISRO exposure for manufacturing technology.
         </h1>
         <section className="mt-10 grid gap-6 md:grid-cols-2">

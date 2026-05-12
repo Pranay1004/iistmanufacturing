@@ -34,15 +34,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ slug: 
               <ArrowLeft size={16} aria-hidden />
               Back to directory
             </Link>
-            <div className="mt-8 grid gap-8 md:grid-cols-[180px_1fr]">
-              <Portrait name={person.name} large />
-              <div>
+            <div className="mt-8 grid gap-6 md:grid-cols-[180px_minmax(0,1fr)] md:gap-8">
+              <div className="w-fit">
+                <Portrait name={person.name} large />
+              </div>
+              <div className="min-w-0">
                 <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">
                   {person.batch ?? person.type}
                 </p>
-                <h1 className="mt-3 font-serif text-5xl font-semibold leading-tight">{person.name}</h1>
-                <p className="mt-2 text-lg font-semibold text-[#0b5d6b]">{person.role}</p>
-                <p className="mt-4 max-w-3xl text-lg leading-8 text-stone-700">{person.synopsis}</p>
+                <h1 className="mt-3 overflow-wrap-anywhere font-serif text-4xl font-semibold leading-tight sm:text-5xl">{person.name}</h1>
+                <p className="mt-2 text-base font-semibold text-[#0b5d6b] sm:text-lg">{person.role}</p>
+                <p className="mt-4 max-w-3xl text-base leading-7 text-stone-700 sm:text-lg sm:leading-8">{person.synopsis}</p>
                 <div className="mt-6">
                   <ProfileActions person={person} />
                 </div>

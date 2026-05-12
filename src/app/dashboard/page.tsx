@@ -7,9 +7,9 @@ export default function DashboardPage() {
 
   return (
     <PageFrame>
-      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Dashboard Preview</p>
-        <h1 className="mt-4 max-w-4xl font-serif text-5xl font-semibold leading-tight">
+        <h1 className="mt-4 max-w-4xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
           Profile editor layout for member-owned updates.
         </h1>
         <p className="mt-5 max-w-3xl leading-7 text-stone-700">

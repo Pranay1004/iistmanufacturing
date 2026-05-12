@@ -33,14 +33,14 @@ export function PeopleDirectory() {
     <>
       <div className="border-y border-stone-300 bg-[#f3eee6]">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="flex flex-wrap gap-2">
+          <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
             {tabs.map((tab) => (
               <button
                 key={tab.value}
                 type="button"
                 onClick={() => setType(tab.value)}
                 className={[
-                  "rounded-sm border px-3 py-2 text-sm font-semibold",
+                  "shrink-0 rounded-sm border px-3 py-2 text-sm font-semibold",
                   type === tab.value
                     ? "border-[#0b5d6b] bg-[#0b5d6b] text-white"
                     : "border-stone-300 bg-white text-stone-700 hover:border-[#0b5d6b]",
@@ -50,14 +50,14 @@ export function PeopleDirectory() {
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
             {cohorts.map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => setCohort(item)}
                 className={[
-                  "rounded-sm border px-3 py-2 font-mono text-xs uppercase tracking-[0.12em]",
+                  "shrink-0 rounded-sm border px-3 py-2 font-mono text-xs uppercase tracking-[0.12em]",
                   cohort === item
                     ? "border-[#8c1515] bg-[#8c1515] text-white"
                     : "border-stone-300 bg-white text-stone-700 hover:border-[#8c1515]",
@@ -80,9 +80,9 @@ export function PeopleDirectory() {
         </div>
       </section>
       {preview && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-[#172426]/70 p-4" role="dialog" aria-modal="true">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-sm bg-[#faf8f3] shadow-2xl">
-            <div className="flex justify-end border-b border-stone-300 p-3">
+        <div className="fixed inset-0 z-50 grid place-items-end bg-[#172426]/70 p-0 sm:place-items-center sm:p-4" role="dialog" aria-modal="true">
+          <div className="max-h-[92svh] w-full max-w-4xl overflow-auto rounded-t-sm bg-[#faf8f3] shadow-2xl sm:max-h-[90vh] sm:rounded-sm">
+            <div className="sticky top-0 z-10 flex justify-end border-b border-stone-300 bg-[#faf8f3] p-3">
               <button
                 type="button"
                 onClick={() => setPreview(null)}
@@ -92,7 +92,7 @@ export function PeopleDirectory() {
                 <X size={18} aria-hidden />
               </button>
             </div>
-            <div className="grid gap-6 p-5 sm:grid-cols-[176px_minmax(0,1fr)] sm:p-6">
+            <div className="grid gap-5 p-5 sm:grid-cols-[160px_minmax(0,1fr)] sm:p-6 md:grid-cols-[176px_minmax(0,1fr)]">
               <div className="w-fit max-w-full">
                 <Portrait name={preview.name} large />
               </div>
@@ -100,7 +100,7 @@ export function PeopleDirectory() {
                 <p className="font-mono text-xs uppercase tracking-[0.16em] text-[#8c1515]">
                   {preview.batch ?? preview.type}
                 </p>
-                <h2 className="mt-2 overflow-wrap-anywhere font-serif text-3xl font-semibold leading-tight text-[#172426]">
+                <h2 className="mt-2 overflow-wrap-anywhere font-serif text-3xl font-semibold leading-tight text-[#172426] sm:text-4xl">
                   {preview.name}
                 </h2>
                 <p className="mt-1 font-semibold text-[#0b5d6b]">{preview.role}</p>

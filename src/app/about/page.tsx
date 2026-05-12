@@ -4,9 +4,9 @@ import { curriculum, programHighlights } from "@/lib/data";
 export default function AboutPage() {
   return (
     <PageFrame>
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Program Overview</p>
-        <h1 className="mt-4 max-w-4xl font-serif text-5xl font-semibold leading-tight">
+        <h1 className="mt-4 max-w-4xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
           M.Tech Manufacturing Technology under Aerospace Engineering at IIST.
         </h1>
         <div className="mt-10 grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
@@ -20,7 +20,7 @@ export default function AboutPage() {
               ))}
             </div>
           </aside>
-          <article className="space-y-6 text-lg leading-8 text-stone-700">
+          <article className="space-y-5 text-base leading-7 text-stone-700 sm:text-lg sm:leading-8">
             <p>
               In line with national initiatives such as Make in India and Atmanirbhar Bharat,
               manufacturing technology is a key subject domain for building strong career prospects,

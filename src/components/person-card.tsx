@@ -15,7 +15,7 @@ export function Portrait({ name, large = false }: { name: string; large?: boolea
     <div
       className={[
         "relative grid shrink-0 place-items-center overflow-hidden rounded-sm border border-stone-300 bg-[#e8ded0]",
-        large ? "size-36 sm:size-44" : "size-20",
+        large ? "size-28 sm:size-40 md:size-44" : "size-20",
       ].join(" ")}
       aria-label={`${name} portrait placeholder`}
     >
@@ -41,7 +41,7 @@ export function PersonCard({
       <button
         type="button"
         onClick={() => onPreview?.(person)}
-        className="grid w-full gap-4 text-left sm:grid-cols-[80px_1fr]"
+        className="grid w-full gap-4 text-left sm:grid-cols-[80px_minmax(0,1fr)]"
       >
         <Portrait name={person.name} />
         <span className="min-w-0">
@@ -73,7 +73,7 @@ export function ProfileActions({ person }: { person: Person }) {
     <div className="flex flex-wrap gap-2">
       <a
         href={`mailto:${person.officialEmail}`}
-        className="inline-flex h-10 items-center gap-2 rounded-sm bg-[#0b5d6b] px-3 text-sm font-semibold text-white hover:bg-[#084854]"
+        className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm bg-[#0b5d6b] px-3 text-sm font-semibold text-white hover:bg-[#084854] sm:flex-none"
       >
         <Mail size={16} aria-hidden />
         Email
@@ -81,7 +81,7 @@ export function ProfileActions({ person }: { person: Person }) {
       {person.portfolio && (
         <a
           href={person.portfolio}
-          className="inline-flex h-10 items-center gap-2 rounded-sm border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 hover:border-[#8c1515]"
+          className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 hover:border-[#8c1515] sm:flex-none"
         >
           <ExternalLink size={16} aria-hidden />
           Portfolio
@@ -90,7 +90,7 @@ export function ProfileActions({ person }: { person: Person }) {
       {person.resumeUrl && (
         <a
           href={person.resumeUrl}
-          className="inline-flex h-10 items-center gap-2 rounded-sm border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 hover:border-[#8c1515]"
+          className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 hover:border-[#8c1515] sm:flex-none"
         >
           <Download size={16} aria-hidden />
           Resume
@@ -98,7 +98,7 @@ export function ProfileActions({ person }: { person: Person }) {
       )}
       <Link
         href={`/people/${person.slug}`}
-        className="inline-flex h-10 items-center gap-2 rounded-sm border border-[#8c1515] px-3 text-sm font-semibold text-[#8c1515] hover:bg-[#8c1515] hover:text-white"
+        className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm border border-[#8c1515] px-3 text-sm font-semibold text-[#8c1515] hover:bg-[#8c1515] hover:text-white sm:flex-none"
       >
         Full Profile
       </Link>

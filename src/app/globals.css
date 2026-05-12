@@ -19,6 +19,11 @@ body {
   font-family: var(--font-source-serif), Georgia, serif;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 ::selection {
   background: #f0dfc2;
   color: #172426;
@@ -36,4 +41,12 @@ textarea {
 
 .overflow-wrap-anywhere {
   overflow-wrap: anywhere;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

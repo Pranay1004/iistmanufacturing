@@ -12,9 +12,9 @@ export default function LoginPage() {
 
   return (
     <PageFrame>
-      <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Member Login</p>
-        <h1 className="mt-4 max-w-3xl font-serif text-5xl font-semibold leading-tight">
+        <h1 className="mt-4 max-w-3xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
           Claim your profile, keep it current, and publish only approved updates.
         </h1>
         <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.85fr]">

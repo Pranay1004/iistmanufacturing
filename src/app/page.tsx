@@ -18,29 +18,29 @@ export default function Home() {
     <PageFrame>
       <main>
         <section className="border-b border-stone-300 bg-[#efe6d7]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
+          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#8c1515]">
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#8c1515] sm:text-xs sm:tracking-[0.22em]">
                 M.Tech Program | Department of Aerospace Engineering
               </p>
-              <h1 className="mt-5 max-w-4xl font-serif text-5xl font-semibold leading-[1.02] text-[#172426] sm:text-6xl">
+              <h1 className="mt-5 max-w-4xl font-serif text-4xl font-semibold leading-[1.04] text-[#172426] sm:text-5xl lg:text-6xl">
                 Manufacturing Technology for aerospace systems, space missions, and national capability.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-700">
+              <p className="mt-6 max-w-2xl text-base leading-7 text-stone-700 sm:text-lg sm:leading-8">
                 A structured IIST academic directory for faculty, M.Tech scholars, PhD researchers,
                 facilities, projects, skills, resumes, and industry-facing opportunities.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
                 <Link
                   href="/people"
-                  className="inline-flex h-11 items-center gap-2 rounded-sm bg-[#8c1515] px-4 text-sm font-semibold text-white hover:bg-[#6d1010]"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-[#8c1515] px-4 text-sm font-semibold text-white hover:bg-[#6d1010]"
                 >
                   Explore Profiles
                   <ArrowRight size={16} aria-hidden />
                 </Link>
                 <Link
                   href="/about"
-                  className="inline-flex h-11 items-center rounded-sm border border-[#0b5d6b] px-4 text-sm font-semibold text-[#0b5d6b] hover:bg-[#0b5d6b] hover:text-white"
+                  className="inline-flex h-11 items-center justify-center rounded-sm border border-[#0b5d6b] px-4 text-sm font-semibold text-[#0b5d6b] hover:bg-[#0b5d6b] hover:text-white"
                 >
                   Program Overview
                 </Link>
@@ -54,7 +54,7 @@ export default function Home() {
                   ["10", "PhD Scholars"],
                 ].map(([value, label]) => (
                   <div key={label} className="border-r border-stone-300 px-3 py-5 last:border-r-0">
-                    <p className="font-serif text-4xl font-semibold text-[#0b5d6b]">{value}</p>
+                    <p className="font-serif text-3xl font-semibold text-[#0b5d6b] sm:text-4xl">{value}</p>
                     <p className="mt-1 text-xs uppercase tracking-[0.14em] text-stone-600">{label}</p>
                   </div>
                 ))}
@@ -71,10 +71,10 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
+        <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Faculty</p>
-            <h2 className="mt-3 font-serif text-4xl font-semibold">Academic leadership</h2>
+            <h2 className="mt-3 font-serif text-3xl font-semibold sm:text-4xl">Academic leadership</h2>
             <p className="mt-4 leading-7 text-stone-700">
               The program is anchored by additive manufacturing, metallurgy, quality engineering,
               manufacturing systems, and aerospace process expertise.
@@ -104,11 +104,11 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
           <div className="flex flex-col justify-between gap-4 border-b border-stone-300 pb-5 md:flex-row md:items-end">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">2025-2027</p>
-              <h2 className="mt-3 font-serif text-4xl font-semibold">Current M.Tech cohort</h2>
+              <h2 className="mt-3 font-serif text-3xl font-semibold sm:text-4xl">Current M.Tech cohort</h2>
             </div>
             <Link href="/people" className="inline-flex items-center gap-2 text-sm font-semibold text-[#8c1515]">
               View full directory <ArrowRight size={16} aria-hidden />
