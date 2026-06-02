@@ -1,7 +1,10 @@
-import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ShieldCheck, Upload, UserRoundCheck } from "lucide-react";
 import { PageFrame } from "@/components/site-shell";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { MetalButton } from "@/components/ui/MetalButton";
 
 export default function LoginPage() {
   const loginFeatures: [LucideIcon, string, string][] = [
@@ -13,34 +16,43 @@ export default function LoginPage() {
   return (
     <PageFrame>
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Member Login</p>
-        <h1 className="mt-4 max-w-3xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
-          Claim your profile, keep it current, and publish only approved updates.
-        </h1>
+        <ScrollReveal>
+          <SectionLabel className="mb-3">Member Login</SectionLabel>
+          <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl">
+            Claim your profile, keep it current, and publish only approved updates.
+          </h1>
+        </ScrollReveal>
+
         <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.85fr]">
-          <section className="border-t border-stone-300 pt-6">
-            <h2 className="font-serif text-3xl font-semibold">Firebase auth scaffold</h2>
-            <p className="mt-4 leading-7 text-stone-700">
-              The site is ready for a new Firebase project using Google sign-in, Firestore profile data,
-              and Firebase Storage for profile photos and PDF resumes. Add the Vercel environment
-              variables, enable Google Auth, and this page can be wired to the live provider.
-            </p>
-            <Link
-              href="/dashboard"
-              className="mt-6 inline-flex h-11 items-center rounded-sm bg-[#0b5d6b] px-4 text-sm font-semibold text-white hover:bg-[#084854]"
-            >
-              Open dashboard preview
-            </Link>
-          </section>
-          <section className="space-y-4">
-            {loginFeatures.map(([Icon, title, text]) => (
-              <article key={title} className="border-t border-stone-300 pt-4">
-                <Icon size={22} className="text-[#b85c28]" aria-hidden />
-                <h3 className="mt-3 font-serif text-2xl font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-stone-700">{text}</p>
-              </article>
-            ))}
-          </section>
+          <ScrollReveal variant="left" as="section">
+            <GlassCard hover={false}>
+              <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Firebase auth scaffold</h2>
+              <p className="mt-4 leading-7 text-[var(--ceramic-muted)]">
+                The site is ready for a new Firebase project using Google sign-in, Firestore profile data,
+                and Firebase Storage for profile photos and PDF resumes. Add the Vercel environment
+                variables, enable Google Auth, and this page can be wired to the live provider.
+              </p>
+              <div className="mt-6">
+                <MetalButton href="/dashboard">
+                  Open dashboard preview
+                </MetalButton>
+              </div>
+            </GlassCard>
+          </ScrollReveal>
+
+          <ScrollReveal variant="right" as="section">
+            <div className="space-y-4">
+              {loginFeatures.map(([Icon, title, text]) => (
+                <GlassCard key={title}>
+                  <div className="mb-3 grid size-9 place-items-center rounded-md bg-[var(--forge-amber-dim)]">
+                    <Icon size={18} className="text-[var(--forge-amber)]" aria-hidden />
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-[var(--ceramic)]">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--ceramic-muted)]">{text}</p>
+                </GlassCard>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </main>
     </PageFrame>

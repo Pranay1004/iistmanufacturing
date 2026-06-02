@@ -1,8 +1,13 @@
-import { ResearchProjects } from "@/components/research-projects";
 import { PageFrame } from "@/components/site-shell";
-import { academicEvents, collaborations, industrialVisits } from "@/lib/data";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Divider } from "@/components/ui/Divider";
+import { academicEvents, collaborations, people } from "@/lib/data";
 
 export default function ResearchPage() {
+  const mtechProjects = people.filter((person) => person.type === "student" && person.projects.length);
+  const phdProjects = people.filter((person) => person.type === "phd" && person.projects.length);
   const areas = [
     "Additive manufacturing for aerospace structures",
     "Aerospace alloys, hot working, and deformation processing",
@@ -14,82 +19,149 @@ export default function ResearchPage() {
 
   return (
     <PageFrame>
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Projects in Progress</p>
-        <h1 className="mt-4 max-w-4xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
-          Ongoing M.Tech, PhD, and B.Tech work in aerospace manufacturing technology.
-        </h1>
-        <p className="mt-5 max-w-3xl text-base leading-7 text-stone-700 sm:text-lg sm:leading-8">
-          This page tracks active student and doctoral projects year-wise, with profile-linked dossiers
-          that can later include abstracts, reports, publications, media, and downloadable outputs.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          {industrialVisits.map((centre) => (
-            <span key={centre} className="rounded-sm bg-[#f0dfc2] px-2 py-1 font-mono text-xs uppercase tracking-[0.14em] text-[#70420f]">
-              {centre}
-            </span>
-          ))}
-        </div>
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <ScrollReveal>
+          <SectionLabel className="mb-3">Projects in Progress</SectionLabel>
+          <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl">
+            Ongoing M.Tech and PhD work in aerospace manufacturing technology.
+          </h1>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8">
+            This page tracks active student and doctoral projects, with profile-linked dossiers
+            that can later include abstracts, reports, publications, media, and downloadable outputs.
+          </p>
+        </ScrollReveal>
 
-        <ResearchProjects />
+        {/* ─── M.Tech Projects ─── */}
+        <section className="mt-12">
+          <ScrollReveal>
+            <Divider className="mb-6" />
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+              <div>
+                <SectionLabel color="amber">M.Tech</SectionLabel>
+                <h2 className="mt-3 font-display text-3xl font-bold text-[var(--ceramic)]">Current and outgoing project dossiers</h2>
+              </div>
+              <span className="font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)]">
+                {mtechProjects.length} active profiles
+              </span>
+            </div>
+          </ScrollReveal>
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
+            {mtechProjects.slice(0, 16).map((person, i) => (
+              <ScrollReveal key={person.slug} delay={i * 80}>
+                <GlassCard variant="compact">
+                  <span className="font-data text-[10px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)]">
+                    {person.batch} · {person.specialization}
+                  </span>
+                  <h3 className="mt-2 font-display text-xl font-bold text-[var(--ceramic)]">{person.projects[0].title}</h3>
+                  <p className="mt-1 text-sm font-semibold text-[var(--arc-blue)]">{person.name}</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--ceramic-muted)]">{person.projects[0].summary}</p>
+                  <span className="mt-3 inline-block font-data text-[10px] uppercase tracking-[0.14em] text-[var(--forge-amber)]">
+                    {person.projects[0].status}
+                  </span>
+                </GlassCard>
+              </ScrollReveal>
+            ))}
+          </div>
+        </section>
 
-        <div className="mt-12 grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-          <section>
-            <h2 className="border-t border-stone-300 pt-5 font-serif text-3xl font-semibold">Project themes</h2>
+        {/* ─── PhD Projects ─── */}
+        <section className="mt-16">
+          <ScrollReveal>
+            <Divider className="mb-6" />
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+              <div>
+                <SectionLabel color="green">PhD</SectionLabel>
+                <h2 className="mt-3 font-display text-3xl font-bold text-[var(--ceramic)]">Doctoral projects under manufacturing faculty</h2>
+              </div>
+              <span className="font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)]">
+                {phdProjects.length} doctoral profiles
+              </span>
+            </div>
+          </ScrollReveal>
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
+            {phdProjects.map((person, i) => (
+              <ScrollReveal key={person.slug} delay={i * 80}>
+                <GlassCard variant="featured" accent="green">
+                  <span className="font-data text-[10px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)]">
+                    {person.admissionYear}
+                    {person.mode ? ` · ${person.mode}` : ""}
+                  </span>
+                  <h3 className="mt-2 font-display text-xl font-bold text-[var(--ceramic)]">{person.projects[0].title}</h3>
+                  <p className="mt-1 text-sm font-semibold text-[var(--arc-blue)]">{person.name}</p>
+                  <p className="mt-1 text-sm text-[var(--ceramic-muted)]">Supervisor: {person.supervisor}</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--ceramic-muted)]">{person.projects[0].summary}</p>
+                </GlassCard>
+              </ScrollReveal>
+            ))}
+          </div>
+        </section>
+
+        {/* ─── Themes & Outputs ─── */}
+        <div className="mt-16 grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+          <ScrollReveal variant="left" as="section">
+            <Divider className="mb-6" />
+            <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">Project themes</h2>
             <div className="mt-5 space-y-3">
               {areas.map((area) => (
-                <p key={area} className="border-t border-stone-300 pt-3 leading-7 text-stone-700">
-                  {area}
-                </p>
+                <div key={area} className="flex gap-3 text-sm leading-7 text-[var(--ceramic-muted)]">
+                  <span className="mt-2 block size-1.5 shrink-0 rounded-full bg-[var(--arc-blue)]" />
+                  <span>{area}</span>
+                </div>
               ))}
             </div>
-          </section>
-          <section>
-            <h2 className="border-t border-stone-300 pt-5 font-serif text-3xl font-semibold">Publication-ready outputs</h2>
-            <div className="mt-5 space-y-5">
+          </ScrollReveal>
+          <ScrollReveal variant="right" as="section">
+            <Divider className="mb-6" />
+            <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">Publication-ready outputs</h2>
+            <div className="mt-5 space-y-4">
               {[
                 "Thesis synopsis and abstract pages for each M.Tech scholar",
                 "Doctoral progress summaries under the relevant faculty supervisor",
                 "Conference papers, journal submissions, posters, and technical reports when approved",
                 "Project media, process sheets, lab notes, datasets, and downloadable public artifacts",
               ].map((item) => (
-                <p key={item} className="border-t border-stone-300 pt-4 leading-7 text-stone-700">
-                  {item}
-                </p>
+                <div key={item} className="flex gap-3 text-sm leading-7 text-[var(--ceramic-muted)]">
+                  <span className="mt-2 block size-1.5 shrink-0 rounded-full bg-[var(--forge-amber)]" />
+                  <span>{item}</span>
+                </div>
               ))}
             </div>
-          </section>
+          </ScrollReveal>
         </div>
-        <section className="mt-12 grid gap-10 border-t border-stone-300 pt-6 lg:grid-cols-2">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">
-              Conferences, seminars, workshops
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold">Department event record</h2>
+
+        {/* ─── Events & Collaborations ─── */}
+        <section className="mt-16 grid gap-12 lg:grid-cols-2">
+          <ScrollReveal variant="left" as="div">
+            <Divider className="mb-6" />
+            <SectionLabel color="amber">Conferences, seminars, workshops</SectionLabel>
+            <h2 className="mt-3 font-display text-3xl font-bold text-[var(--ceramic)]">Department event record</h2>
             <div className="mt-5 space-y-4">
-              {academicEvents.map((event) => (
-                <article key={event.title} className="border-t border-stone-300 pt-4">
-                  <p className="font-mono text-xs uppercase tracking-[0.14em] text-stone-500">{event.date}</p>
-                  <h3 className="mt-2 font-serif text-2xl font-semibold">{event.title}</h3>
-                  <p className="mt-1 text-sm text-[#0b5d6b]">{event.scope}</p>
-                </article>
+              {academicEvents.map((event, i) => (
+                <ScrollReveal key={event.title} delay={i * 60}>
+                  <GlassCard variant="compact">
+                    <span className="font-data text-[10px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)]">{event.date}</span>
+                    <h3 className="mt-2 font-display text-xl font-bold text-[var(--ceramic)]">{event.title}</h3>
+                    <p className="mt-1 text-sm text-[var(--arc-blue)]">{event.scope}</p>
+                  </GlassCard>
+                </ScrollReveal>
               ))}
             </div>
-          </div>
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">
-              MoUs and collaborations
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold">Relevant institutional links</h2>
+          </ScrollReveal>
+          <ScrollReveal variant="right" as="div">
+            <Divider className="mb-6" />
+            <SectionLabel color="green">MoUs and collaborations</SectionLabel>
+            <h2 className="mt-3 font-display text-3xl font-bold text-[var(--ceramic)]">Relevant institutional links</h2>
             <div className="mt-5 space-y-4">
-              {collaborations.map((item) => (
-                <article key={item.partner} className="border-t border-stone-300 pt-4">
-                  <h3 className="font-serif text-2xl font-semibold">{item.partner}</h3>
-                  <p className="mt-2 text-sm leading-6 text-stone-700">{item.summary}</p>
-                </article>
+              {collaborations.map((item, i) => (
+                <ScrollReveal key={item.partner} delay={i * 60}>
+                  <GlassCard variant="featured" accent="green">
+                    <h3 className="font-display text-xl font-bold text-[var(--ceramic)]">{item.partner}</h3>
+                    <p className="mt-2 text-sm leading-6 text-[var(--ceramic-muted)]">{item.summary}</p>
+                  </GlassCard>
+                </ScrollReveal>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
         </section>
       </main>
     </PageFrame>

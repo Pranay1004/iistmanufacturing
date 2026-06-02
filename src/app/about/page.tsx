@@ -1,90 +1,120 @@
 import { PageFrame } from "@/components/site-shell";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { curriculum, programHighlights } from "@/lib/data";
+import { InteractiveWorkbench } from "@/components/InteractiveWorkbench";
 
 export default function AboutPage() {
   return (
     <PageFrame>
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">Program Overview</p>
-        <h1 className="mt-4 max-w-4xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
-          M.Tech Manufacturing Technology under Aerospace Engineering at IIST.
-        </h1>
+        <ScrollReveal>
+          <SectionLabel className="mb-3">Program Overview</SectionLabel>
+          <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl">
+            M.Tech Manufacturing Technology under Aerospace Engineering at IIST.
+          </h1>
+        </ScrollReveal>
+
         <div className="mt-10 grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
-          <aside className="border-t border-stone-300 pt-5">
-            <h2 className="font-serif text-2xl font-semibold">Salient features</h2>
-            <div className="mt-5 space-y-4">
+          <ScrollReveal variant="left" as="aside">
+            <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Salient features</h2>
+            <div className="mt-5 space-y-3">
               {programHighlights.map((item) => (
-                <p key={item} className="border-t border-stone-300 pt-4 leading-7 text-stone-700">
-                  {item}
-                </p>
+                <div key={item} className="rounded-lg border border-[var(--edge)] bg-[var(--panel)]/50 p-4 transition-colors duration-200 hover:border-[var(--edge-hover)]">
+                  <p className="text-sm leading-7 text-[var(--ceramic-muted)]">{item}</p>
+                </div>
               ))}
             </div>
-          </aside>
-          <article className="space-y-5 text-base leading-7 text-stone-700 sm:text-lg sm:leading-8">
-            <p>
-              In line with national initiatives such as Make in India and Atmanirbhar Bharat,
-              manufacturing technology is a key subject domain for building strong career prospects,
-              strategic capability, and research capacity.
-            </p>
-            <p>
-              The Manufacturing Technology master&apos;s program initiated by IIST under the Department
-              of Aerospace Engineering is oriented toward advanced manufacturing processes for aerospace
-              applications. It covers additive manufacturing and smart practices, composite manufacturing
-              technology, deformation and joining processes, computer-aided subtractive manufacturing,
-              manufacturing planning and control, and hands-on work with manufacturing, testing, and
-              characterization equipment.
-            </p>
-            <p>
-              The program is designed to develop creative and technologically competent human resources,
-              while opening research avenues connected to ISRO centres, aerospace manufacturing case
-              studies, space-oriented demonstrations, internships, and project opportunities.
-            </p>
-          </article>
-        </div>
-        <section className="mt-12 border-t border-stone-300 pt-6">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#8c1515]">
-            Curriculum effective from 2024 admission
-          </p>
-          <div className="mt-5 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="space-y-5 text-base leading-7 text-stone-700">
+          </ScrollReveal>
+
+          <ScrollReveal variant="right" as="article">
+            <div className="space-y-5 text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8">
               <p>
-                <strong className="text-[#172426]">Vision:</strong> {curriculum.vision}
+                In line with national initiatives such as Make in India and Atmanirbhar Bharat,
+                manufacturing technology is a key subject domain for building strong career prospects,
+                strategic capability, and research capacity.
               </p>
               <p>
-                <strong className="text-[#172426]">Mission:</strong> {curriculum.mission}
+                The Manufacturing Technology master&apos;s program initiated by IIST under the Department
+                of Aerospace Engineering is oriented toward advanced manufacturing processes for aerospace
+                applications. It covers additive manufacturing and smart practices, composite manufacturing
+                technology, deformation and joining processes, computer-aided subtractive manufacturing,
+                manufacturing planning and control, and hands-on work with manufacturing, testing, and
+                characterization equipment.
               </p>
               <p>
-                <strong className="text-[#172426]">Objective:</strong> {curriculum.objective}
+                The program is designed to develop creative and technologically competent human resources,
+                while opening research avenues connected to ISRO centres, aerospace manufacturing case
+                studies, space-oriented demonstrations, internships, and project opportunities.
               </p>
             </div>
+          </ScrollReveal>
+        </div>
+
+        <section className="mt-12 border-t border-[var(--edge)] pt-8">
+          <ScrollReveal>
+            <SectionLabel color="amber" className="mb-3">
+              Curriculum effective from 2024 admission
+            </SectionLabel>
+          </ScrollReveal>
+
+          <div className="mt-5 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+            <ScrollReveal variant="left">
+              <div className="space-y-5 text-base leading-7 text-[var(--ceramic-muted)]">
+                <p>
+                  <strong className="text-[var(--ceramic)]">Vision:</strong> {curriculum.vision}
+                </p>
+                <p>
+                  <strong className="text-[var(--ceramic)]">Mission:</strong> {curriculum.mission}
+                </p>
+                <p>
+                  <strong className="text-[var(--ceramic)]">Objective:</strong> {curriculum.objective}
+                </p>
+              </div>
+            </ScrollReveal>
+
             <div className="grid gap-4 sm:grid-cols-2">
               {curriculum.semesters.map((semester) => (
-                <article key={semester.title} className="border-t border-stone-300 pt-4">
-                  <p className="font-mono text-xs uppercase tracking-[0.14em] text-[#8c1515]">
-                    {semester.credits} credits
-                  </p>
-                  <h2 className="mt-2 font-serif text-2xl font-semibold">{semester.title}</h2>
-                  <div className="mt-3 space-y-2">
-                    {semester.courses.map((course) => (
-                      <p key={course} className="text-sm leading-6 text-stone-700">
-                        {course}
-                      </p>
-                    ))}
-                  </div>
-                </article>
+                <ScrollReveal key={semester.title} variant="up">
+                  <GlassCard>
+                    <SectionLabel color="amber" className="mb-2">
+                      {semester.credits} credits
+                    </SectionLabel>
+                    <h2 className="font-display text-xl font-bold text-[var(--ceramic)]">{semester.title}</h2>
+                    <div className="mt-3 space-y-2">
+                      {semester.courses.map((course) => (
+                        <p key={course} className="text-sm leading-6 text-[var(--ceramic-muted)]">
+                          {course}
+                        </p>
+                      ))}
+                    </div>
+                  </GlassCard>
+                </ScrollReveal>
               ))}
             </div>
           </div>
-          <div className="mt-8 border-t border-stone-300 pt-5">
-            <h2 className="font-serif text-3xl font-semibold">Elective spread</h2>
+
+          <ScrollReveal className="mt-12 border-t border-[var(--edge)] pt-8">
+            <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">
+              Interactive Manufacturing Workbench & Process Simulator
+            </h2>
+            <p className="mt-3 text-base text-[var(--ceramic-muted)] leading-relaxed">
+              Explore custom-forged animations for each primary manufacturing course. If you have CAD (.glb) models or video loops (.mp4) from your labs, place them in the corresponding <code>public/media/cad/</code> or <code>public/media/videos/</code> folders with the course id (e.g. <code>welding.mp4</code> or <code>cad.glb</code>) to load them directly into this workspace!
+            </p>
+            <InteractiveWorkbench />
+          </ScrollReveal>
+
+          <ScrollReveal className="mt-12 border-t border-[var(--edge)] pt-6">
+            <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Elective spread</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {curriculum.electives.map((elective) => (
-                <span key={elective} className="rounded-sm border border-stone-300 bg-white px-2 py-1 text-sm">
+                <span key={elective} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-3 py-1.5 text-sm text-[var(--ceramic-muted)] transition-colors duration-200 hover:border-[var(--arc-blue)] hover:text-[var(--arc-blue)]">
                   {elective}
                 </span>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
         </section>
       </main>
     </PageFrame>

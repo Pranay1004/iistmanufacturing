@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Mail, ExternalLink, Download } from "lucide-react";
+import { Download, ExternalLink, Share2, Mail } from "lucide-react";
 import type { Person } from "@/lib/data";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 export function Portrait({ name, large = false }: { name: string; large?: boolean }) {
   const initials = name
@@ -11,19 +12,43 @@ export function Portrait({ name, large = false }: { name: string; large?: boolea
     .map((part) => part[0])
     .join("");
 
+  /* Deterministic color from name hash — each person gets a unique gradient */
+  const hash = name.split("").reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+  const hue1 = Math.abs(hash) % 360;
+  const hue2 = (hue1 + 45 + (Math.abs(hash >> 8) % 40)) % 360;
+  const gradient = `linear-gradient(135deg, hsl(${hue1}, 42%, 68%) 0%, hsl(${hue2}, 38%, 52%) 100%)`;
+
   return (
     <div
       className={[
-        "relative grid shrink-0 place-items-center overflow-hidden rounded-sm border border-stone-300 bg-[#e8ded0]",
-        large ? "size-28 sm:size-40 md:size-44" : "size-20",
+        "relative shrink-0 overflow-hidden rounded-lg border border-[var(--edge)] aspect-[3/4] select-none",
+        large ? "w-32 sm:w-40 md:w-44" : "w-16 sm:w-20",
       ].join(" ")}
+      style={{ background: gradient }}
       aria-label={`${name} portrait placeholder`}
     >
-      <div className="absolute inset-x-0 top-0 h-1/3 bg-[#0b5d6b]" />
-      <div className="absolute bottom-0 h-2/3 w-3/4 rounded-t-full bg-[#b85c28]" />
-      <div className="absolute top-[22%] size-1/3 rounded-full bg-[#f3c79d]" />
-      <span className="relative mt-auto mb-3 bg-[#172426]/80 px-2 py-1 font-mono text-xs font-semibold text-white">
-        {initials}
+      {/* Subtle grid overlay for depth */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
+
+      {/* Corner metrology brackets */}
+      <div className="absolute top-1.5 left-1.5 size-2 border-t border-l border-white/40" />
+      <div className="absolute top-1.5 right-1.5 size-2 border-t border-r border-white/40" />
+      <div className="absolute bottom-1.5 left-1.5 size-2 border-b border-l border-white/40" />
+      <div className="absolute bottom-1.5 right-1.5 size-2 border-b border-r border-white/40" />
+
+      {/* Centered initials */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className={[
+          "font-display font-bold text-white/90 drop-shadow-sm",
+          large ? "text-3xl" : "text-base",
+        ].join(" ")}>
+          {initials}
+        </span>
+      </div>
+
+      {/* Bottom ID tag */}
+      <span className="absolute bottom-1.5 left-1.5 font-data text-[7px] tracking-wider text-white/50 select-none uppercase">
+        ID-{initials || "NA"}
       </span>
     </div>
   );
@@ -37,34 +62,69 @@ export function PersonCard({
   onPreview?: (person: Person) => void;
 }) {
   return (
-    <article className="group border-t border-stone-300 py-5">
-      <button
-        type="button"
-        onClick={() => onPreview?.(person)}
-        className="grid w-full gap-4 text-left sm:grid-cols-[80px_minmax(0,1fr)]"
-      >
-        <Portrait name={person.name} />
-        <span className="min-w-0">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-serif text-xl font-semibold text-[#172426] group-hover:text-[#8c1515]">
-              {person.name}
-            </span>
-            <span className="rounded-sm bg-[#f0dfc2] px-2 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#70420f]">
-              {person.batch ?? person.type}
-            </span>
-          </span>
-          <span className="mt-1 block text-sm font-semibold text-[#0b5d6b]">{person.role}</span>
-          <span className="mt-2 block text-sm leading-6 text-stone-700">{person.specialization}</span>
-          <span className="mt-3 flex flex-wrap gap-2">
-            {person.skills.slice(0, 3).map((skill) => (
-              <span key={skill} className="rounded-sm border border-stone-300 bg-white px-2 py-1 text-xs text-stone-700">
-                {skill}
+    <GlassCard 
+      className="p-4 cursor-pointer hover:cursor-pointer hover:border-[var(--arc-blue)] transition-all duration-300 group" 
+      hover={true} 
+      as="article"
+      onClick={() => onPreview?.(person)}
+    >
+      <div className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
+        <div className="flex justify-center sm:justify-start">
+          <Portrait name={person.name} />
+        </div>
+        <div className="min-w-0 flex flex-col justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-display text-xl font-semibold text-[var(--ceramic)] group-hover:text-[var(--arc-blue)] transition-colors duration-200">
+                {person.name}
               </span>
-            ))}
-          </span>
-        </span>
-      </button>
-    </article>
+              <span className="rounded-md bg-[var(--forge-amber-dim)] px-2 py-0.5 font-data text-[10px] uppercase tracking-[0.14em] text-[var(--forge-amber)]">
+                {person.batch ?? person.type}
+              </span>
+            </div>
+            <span className="mt-1 block text-sm font-medium text-[var(--arc-blue)]">{person.role}</span>
+            <span className="mt-2 block text-sm leading-6 text-[var(--ceramic-muted)] line-clamp-2">{person.specialization}</span>
+            <span className="mt-3 flex flex-wrap gap-2">
+              {person.skills.slice(0, 3).map((skill) => (
+                <span key={skill} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2 py-0.5 text-xs text-[var(--ceramic-muted)]">
+                  {skill}
+                </span>
+              ))}
+            </span>
+          </div>
+          
+          <div className="mt-4 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+            {person.linkedin && (
+              <a
+                href={person.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-8 items-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2.5 text-xs font-medium text-[var(--ceramic-muted)] hover:border-[var(--arc-blue)] hover:text-[var(--arc-blue)] transition-colors duration-200"
+              >
+                <Share2 size={13} aria-hidden />
+                LinkedIn
+              </a>
+            )}
+            {person.resumeUrl ? (
+              <a
+                href={person.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-8 items-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2.5 text-xs font-medium text-[var(--ceramic-muted)] hover:border-[var(--forge-amber)] hover:text-[var(--forge-amber)] transition-colors duration-200"
+              >
+                <Download size={13} aria-hidden />
+                Resume
+              </a>
+            ) : (
+              <span className="inline-flex h-8 items-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--carbon)] px-2.5 text-xs font-medium text-[var(--ceramic-muted)]/50">
+                <Download size={13} aria-hidden />
+                Pending
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
 
@@ -73,7 +133,7 @@ export function ProfileActions({ person }: { person: Person }) {
     <div className="flex flex-wrap gap-2">
       <a
         href={`mailto:${person.officialEmail}`}
-        className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm bg-[#0b5d6b] px-3 text-sm font-semibold text-white hover:bg-[#084854] sm:flex-none"
+        className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-md bg-[var(--arc-blue)] px-3 text-sm font-medium text-white hover:brightness-90 hover:shadow-[var(--shadow-glow-blue)] transition-all duration-200 sm:flex-none"
       >
         <Mail size={16} aria-hidden />
         Email
@@ -81,27 +141,48 @@ export function ProfileActions({ person }: { person: Person }) {
       {person.portfolio && (
         <a
           href={person.portfolio}
-          className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 hover:border-[#8c1515] sm:flex-none"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-3 text-sm font-medium text-[var(--ceramic)] hover:border-[var(--forge-amber)] sm:flex-none"
         >
           <ExternalLink size={16} aria-hidden />
           Portfolio
         </a>
       )}
-      {person.resumeUrl && (
+      {person.linkedin && (
+        <a
+          href={person.linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-3 text-sm font-medium text-[var(--ceramic)] hover:border-[var(--arc-blue)] sm:flex-none"
+        >
+          <Share2 size={16} aria-hidden />
+          LinkedIn
+        </a>
+      )}
+      {person.resumeUrl ? (
         <a
           href={person.resumeUrl}
-          className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 hover:border-[#8c1515] sm:flex-none"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-3 text-sm font-medium text-[var(--ceramic)] hover:border-[var(--forge-amber)] sm:flex-none"
         >
           <Download size={16} aria-hidden />
           Resume
         </a>
+      ) : (
+        <span className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--carbon)] px-3 text-sm font-medium text-[var(--ceramic-muted)]/50 sm:flex-none">
+          <Download size={16} aria-hidden />
+          Pending
+        </span>
       )}
       <Link
         href={`/people/${person.slug}`}
-        className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-sm border border-[#8c1515] px-3 text-sm font-semibold text-[#8c1515] hover:bg-[#8c1515] hover:text-white sm:flex-none"
+        className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-md border border-[var(--arc-blue)] px-3 text-sm font-medium text-[var(--arc-blue)] hover:bg-[var(--arc-blue)] hover:text-white transition-colors duration-200 sm:flex-none"
       >
         Full Profile
       </Link>
     </div>
   );
 }
+

@@ -1,26 +1,31 @@
 import type { Metadata } from "next";
-import { EB_Garamond, Geist_Mono, Source_Serif_4 } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const garamond = EB_Garamond({
-  variable: "--font-garamond",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Manufacturing Technology | IIST Aerospace Engineering",
   description:
     "Academic directory and program website for M.Tech Manufacturing Technology under Aerospace Engineering at IIST.",
+  keywords:
+    "IIST, Manufacturing Technology, Aerospace Engineering, M.Tech, India, ISRO",
 };
 
 export default function RootLayout({
@@ -31,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sourceSerif.variable} ${garamond.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

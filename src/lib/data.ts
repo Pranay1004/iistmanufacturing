@@ -7,6 +7,12 @@ export type Project = {
   status: "Concept" | "Ongoing" | "Completed";
 };
 
+export type ProfileSection = {
+  title: string;
+  body: string;
+  items?: string[];
+};
+
 export type Person = {
   slug: string;
   type: PersonType;
@@ -35,6 +41,8 @@ export type Person = {
   sourceUrl?: string;
   admissionYear?: string;
   mode?: "Regular" | "Sponsored";
+  loginId?: string;
+  profileSections?: ProfileSection[];
 };
 
 export const programHighlights = [
@@ -241,6 +249,37 @@ const studentProjects: Project[] = [
   },
 ];
 
+const defaultStudentSections: ProfileSection[] = [
+  {
+    title: "Summary",
+    body: "Short academic and professional summary to be updated by the profile owner after login.",
+  },
+  {
+    title: "Previous experience",
+    body: "Internships, industrial visits, workshops, technical teams, and relevant prior work can be listed here.",
+    items: ["ISRO centre exposure", "Laboratory coursework", "Manufacturing documentation"],
+  },
+  {
+    title: "Publications and reports",
+    body: "Conference papers, journal submissions, posters, thesis reports, and approved technical notes can be added here.",
+  },
+];
+
+const defaultPhdSections: ProfileSection[] = [
+  {
+    title: "Research summary",
+    body: "Doctoral research summary to be refined by the scholar with objectives, methods, and current progress.",
+  },
+  {
+    title: "Publications",
+    body: "Journal papers, conference papers, preprints, posters, and manuscripts under review can be added here.",
+  },
+  {
+    title: "Technical experience",
+    body: "Experimental setups, simulations, characterization workflows, collaborations, and sponsored project work can be documented here.",
+  },
+];
+
 export const people: Person[] = [
   {
     slug: "sooraj-v-s",
@@ -273,6 +312,12 @@ export const people: Person[] = [
       },
     ],
     sourceUrl: "https://www.iist.ac.in/people-faculty-profile/sooraj-v-s",
+    profileSections: [
+      {
+        title: "Sponsored and guided work",
+        body: "Faculty profile sections can hold sponsored projects, patents, publications, guided students, invited talks, and lab capabilities.",
+      },
+    ],
   },
   {
     slug: "chakravarthy-p",
@@ -305,6 +350,12 @@ export const people: Person[] = [
       },
     ],
     sourceUrl: "https://www.iist.ac.in/people-faculty-profile/chakravarthy-p",
+    profileSections: [
+      {
+        title: "Materials and process scholarship",
+        body: "Additional sections can document publications, funded projects, student supervision, and specialist facilities.",
+      },
+    ],
   },
   {
     slug: "b-s-girish",
@@ -336,6 +387,12 @@ export const people: Person[] = [
       },
     ],
     sourceUrl: "https://www.iist.ac.in/people-faculty-profile/b-s-girish",
+    profileSections: [
+      {
+        title: "Systems and quality scholarship",
+        body: "Additional sections can document publications, optimization tools, industry problems, and guided student work.",
+      },
+    ],
   },
 ];
 
@@ -351,14 +408,69 @@ const currentStudents = [
 ] as const;
 
 const outgoingStudents = [
-  ["karthik-v", "Karthik V.", "Composite Manufacturing"],
-  ["isha-banerjee", "Isha Banerjee", "Additive Manufacturing"],
-  ["rohan-george", "Rohan George", "Quality Engineering"],
-  ["lakshmi-prasad", "Lakshmi Prasad", "Forming Technology"],
-  ["aditya-sen", "Aditya Sen", "CAD-CAM and CNC"],
-  ["fatima-khan", "Fatima Khan", "Welding and Joining"],
-  ["vivek-mathew", "Vivek Mathew", "Manufacturing Planning"],
-  ["shruti-narayanan", "Shruti Narayanan", "Composite Manufacturing"],
+  {
+    slug: "arun-binu",
+    name: "Arun Binu",
+    roll: "SC24M021",
+    specialization: "Manufacturing Technology",
+    personalEmail: "arunbinu2001@gmail.com",
+    officialEmail: "arun.sc24m021@pg.iist.ac.in",
+    linkedin: "https://linkedin.com/in/arun-binu-959284207",
+  },
+  {
+    slug: "pushpal-das",
+    name: "Pushpal Das",
+    roll: "SC24M022",
+    specialization: "Manufacturing Technology",
+    personalEmail: "pushpaldas08@gmail.com",
+    officialEmail: "pushpal.sc24m022@pg.iist.ac.in",
+    linkedin: "https://linkedin.com/in/pushpal-das-5b3018182",
+  },
+  {
+    slug: "naisha-muhammed",
+    name: "Naisha Muhammed",
+    roll: "SC24M023",
+    specialization: "Manufacturing Technology",
+    personalEmail: "naishacadd@gmail.com",
+    officialEmail: "naisha.sc24m023@pg.iist.ac.in",
+    linkedin: "https://linkedin.com/in/naisha-muhammed",
+  },
+  {
+    slug: "t-v-divya",
+    name: "T V Divya",
+    roll: "SC24M024",
+    specialization: "Manufacturing Technology",
+    personalEmail: "divyarayar123@gmail.com",
+    officialEmail: "divya.sc24m024@pg.iist.ac.in",
+    linkedin: "https://linkedin.com/in/divya-t-v-0802771b2",
+  },
+  {
+    slug: "buddha-sai-dinesh",
+    name: "Buddha Sai Dinesh",
+    roll: "SC24M025",
+    specialization: "Manufacturing Technology",
+    personalEmail: "dbs20806@gmail.com",
+    officialEmail: "dinesh.sc24m025@pg.iist.ac.in",
+    linkedin: undefined,
+  },
+  {
+    slug: "gayathri-v-krishna",
+    name: "Gayathri V Krishna",
+    roll: "SC24M026",
+    specialization: "Manufacturing Technology",
+    personalEmail: "gayathri.vkrish2000@gmail.com",
+    officialEmail: "gayathri.sc24m026@pg.iist.ac.in",
+    linkedin: "https://linkedin.com/in/gayathri-v-krishna",
+  },
+  {
+    slug: "p-j-arjun",
+    name: "P J Arjun",
+    roll: "SC24M027",
+    specialization: "Manufacturing Technology",
+    personalEmail: "aaromalpj@gmail.com",
+    officialEmail: "arjun.sc24m027@pg.iist.ac.in",
+    linkedin: "https://linkedin.com/in/p-j-arjun-1036b01b7",
+  },
 ] as const;
 
 const incomingStudents = Array.from({ length: 12 }, (_, index) => ({
@@ -393,6 +505,7 @@ people.push(
     personalEmail: `${slug.replaceAll("-", ".")}@gmail.com`,
     portfolio: `https://${slug}.portfolio.example`,
     linkedin: `https://www.linkedin.com/in/${slug}`,
+    loginId: roll,
     availability: "Open to internships",
     isAdmin: admin,
     synopsis:
@@ -404,24 +517,27 @@ people.push(
       Professional: ["Technical writing", "Project reviews", "Presentation"],
     },
     projects: studentProjects,
-    seekingRoles: ["Manufacturing engineer", "R&D intern", "Process development trainee"],
+    seekingRoles: ["COMPOSITE ENGINEER", "WELDING ENGINEER", "Additive Manufacturing Engineer", "Production Engineer", "Quality Engineer", "Operations", "PGET", "Smart Manufacturing Engineer"],
+    profileSections: defaultStudentSections,
   })),
-  ...outgoingStudents.map(([slug, name, specialization]): Person => ({
-    slug,
+  ...outgoingStudents.map((student): Person => ({
+    slug: student.slug,
     type: "student",
-    name,
-    role: "M.Tech Scholar",
+    name: student.name,
+    role: `M.Tech Scholar, ${student.roll}`,
     batch: "2024-2026",
     cohort: "2024-2026",
-    specialization,
-    officialEmail: `${slug.replaceAll("-", ".")}@iist.ac.in`,
-    personalEmail: `${slug.replaceAll("-", ".")}@gmail.com`,
+    specialization: student.specialization,
+    officialEmail: student.officialEmail,
+    personalEmail: student.personalEmail,
+    linkedin: student.linkedin,
+    loginId: student.roll,
     availability: "Open to roles",
     synopsis:
       "Outgoing Manufacturing Technology scholar with project exposure in aerospace manufacturing, process analysis, and applied research communication.",
-    skills: [specialization, "Manufacturing analysis", "Lab practice", "Project reporting"],
+    skills: [student.specialization, "Manufacturing analysis", "Lab practice", "Project reporting"],
     skillGroups: {
-      Core: [specialization, "Process optimization", "Materials processing"],
+      Core: [student.specialization, "Process optimization", "Materials processing"],
       Tools: ["CAD-CAM", "Data analysis", "Quality review"],
       Professional: ["Research writing", "Team coordination", "Industry communication"],
     },
@@ -432,7 +548,8 @@ people.push(
         status: "Ongoing",
       },
     ],
-    seekingRoles: ["Graduate engineer trainee", "Manufacturing analyst", "Quality engineer"],
+    seekingRoles: ["COMPOSITE ENGINEER", "WELDING ENGINEER", "Additive Manufacturing Engineer", "Production Engineer", "Quality Engineer", "Operations", "PGET", "Smart Manufacturing Engineer"],
+    profileSections: defaultStudentSections,
   })),
   ...incomingStudents.map(({ slug, name, specialization }): Person => ({
     slug,
@@ -443,12 +560,19 @@ people.push(
     cohort: "2026-2028",
     specialization,
     officialEmail: "to-be-updated@iist.ac.in",
+    loginId: `SC26M${String(Number(slug.split("-").at(-1)) + 140).padStart(3, "0")}`,
     availability: "Joining soon",
     synopsis: "This profile will unlock when the 2026-2028 cohort joins the Manufacturing Technology program.",
     skills: ["Profile pending", "Joining August 2026"],
     skillGroups: { Status: ["Admission pending", "Profile locked"] },
     projects: [],
     seekingRoles: ["To be updated"],
+    profileSections: [
+      {
+        title: "Profile locked",
+        body: "Incoming students can add summary, skills, projects, resume, and custom sections after joining.",
+      },
+    ],
   })),
   ...phdScholars.map(([slug, name, specialization, supervisor, admissionYear, mode]): Person => ({
     slug,
@@ -458,6 +582,7 @@ people.push(
     specialization,
     supervisor,
     officialEmail: `${slug.replaceAll("-", ".")}@iist.ac.in`,
+    linkedin: `https://www.linkedin.com/in/${slug}`,
     availability: "Research focused",
     admissionYear,
     mode,
@@ -476,8 +601,18 @@ people.push(
       },
     ],
     seekingRoles: ["Postdoctoral research", "R&D scientist", "Faculty-track research"],
+    profileSections: defaultPhdSections,
   })),
 );
+
+export const initialLoginCredentials = people
+  .filter((person) => person.loginId)
+  .map((person) => ({
+    name: person.name,
+    role: person.role,
+    username: person.loginId as string,
+    initialPassword: person.loginId as string,
+  }));
 
 export function getPerson(slug: string) {
   return people.find((person) => person.slug === slug);

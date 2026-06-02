@@ -1,6 +1,6 @@
 import { getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -21,3 +21,18 @@ const app = isFirebaseConfigured && !getApps().length ? initializeApp(firebaseCo
 export const auth = app ? getAuth(app) : null;
 export const db = app ? getFirestore(app) : null;
 export const storage = app ? getStorage(app) : null;
+
+// Connect to emulators if environment variables are set (client-side)
+try {
+  const authEmulator = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  const firestoreEmulator = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST;
+  if (auth && authEmulator) {
+    connectAuthEmulator(auth, `http://${authEmulator}`);
+  }
+  if (db && firestoreEmulator) {
+    const [host, port] = firestoreEmulator.split(":");
+    connectFirestoreEmulator(db, host, Number(port));
+  }
+} catch {
+  // ignore in production
+}
