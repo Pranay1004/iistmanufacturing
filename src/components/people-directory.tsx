@@ -136,28 +136,28 @@ export function PeopleDirectory() {
             <span className="block font-data text-[9px] uppercase tracking-[0.16em] text-[var(--ceramic-muted)] mb-2.5">
               Quick Select ({filtered.length} Profiles)
             </span>
-            <div className="scrollbar-none flex gap-2.5 overflow-x-auto pb-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {filtered.map((person) => (
                 <button
                   key={person.slug}
                   type="button"
                   onClick={() => setPreview(person)}
                   className={[
-                    "shrink-0 rounded border px-3 py-1.5 font-display text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-2",
+                    "w-full rounded border px-3 py-1.5 font-display text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-2 text-left justify-start min-w-0",
                     type === "student"
                       ? "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--forge-amber)] hover:shadow-[0_0_6px_rgba(245,158,11,0.2)]"
                       : "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--laser-green)] hover:shadow-[0_0_6px_rgba(34,197,94,0.2)]",
                   ].join(" ")}
                 >
                   <span className={[
-                    "size-1.5 rounded-full animate-pulse",
+                    "size-1.5 rounded-full shrink-0 animate-pulse",
                     type === "student" ? "bg-[var(--forge-amber)]" : "bg-[var(--laser-green)]",
                   ].join(" ")} />
-                  {person.name}
+                  <span className="truncate">{person.name}</span>
                 </button>
               ))}
               {filtered.length === 0 && (
-                <span className="text-xs text-[var(--ceramic-muted)] italic py-1 select-none">No active profiles in selected cohort.</span>
+                <span className="col-span-full text-xs text-[var(--ceramic-muted)] italic py-1 select-none">No active profiles in selected cohort.</span>
               )}
             </div>
           </div>
