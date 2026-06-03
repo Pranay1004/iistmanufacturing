@@ -41,6 +41,35 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "EducationalOccupationalProgram",
+              "name": "M.Tech in Manufacturing Technology",
+              "description": "Postgraduate program in Manufacturing Technology at Indian Institute of Space Science and Technology (IIST), focusing on aerospace, automotive, machinery, biomedical, CAM/CAD, and advanced materials engineering.",
+              "provider": {
+                "@type": "CollegeOrUniversity",
+                "name": "Indian Institute of Space Science and Technology (IIST)",
+                "sameAs": "https://www.iist.ac.in",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Valiamala, Thiruvananthapuram",
+                  "addressRegion": "Kerala",
+                  "postalCode": "695547",
+                  "addressCountry": "India"
+                }
+              },
+              "programType": "Postgraduate",
+              "educationalLevel": "Master's Degree",
+              "occupationalCategory": "Manufacturing Engineer, Aerospace Engineer, Mechanical Engineer, Robotics and Smart Manufacturing Specialist",
+              "url": "https://iistmanufacturing.vercel.app"
+            })
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
