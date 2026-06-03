@@ -79,15 +79,13 @@ export default function PlacementsPage() {
           <div className="absolute inset-0 surface-grid pointer-events-none opacity-50" />
           <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
             <ScrollReveal>
-              <SectionLabel className="mb-4">For Recruiters</SectionLabel>
               <h1 className="mt-2 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl lg:text-6xl">
-                Hire aerospace manufacturing talent from{" "}
-                <span className="gradient-shimmer">IIST's M.Tech program.</span>
+                Hire manufacturing engineers{" "}
+                <span className="gradient-shimmer">FORGED in all domains.</span>
               </h1>
               <p className="mt-6 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg">
-                The Manufacturing Technology program at IIST trains engineers for the aerospace
-                and space sector — covering additive manufacturing, composites, welding, precision
-                machining, quality engineering, and manufacturing systems.
+                Our M.Tech students are engineered for precision and forged across aerospace, automobile,
+                machinery, industrial systems, operations, biomedical engineering, CAD/CAM, and advanced manufacturing.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <MetalButton href="mailto:sooraj@iist.ac.in" variant="primary">
@@ -232,8 +230,7 @@ export default function PlacementsPage() {
                 Core competency domains
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--ceramic-muted)]">
-                Profiles are distributed across six core manufacturing domains, each aligned to
-                aerospace and space industry requirements.
+                Profiles are distributed across six core manufacturing competency domains, versatile enough for high-tech sectors spanning aerospace, automotive, machinery, biomedical systems, CAD/CAM, and industrial operations.
               </p>
             </ScrollReveal>
 
@@ -277,16 +274,13 @@ export default function PlacementsPage() {
                   <p>
                     The M.Tech Manufacturing Technology program at the Indian Institute of Space
                     Science & Technology (IIST) is a 2-year postgraduate program embedded in the
-                    Aerospace Engineering department.
+                    Aerospace Engineering department, focusing on multi-disciplinary engineering excellence.
                   </p>
                   <p>
-                    Students receive exposure to ISRO facilities including CMSE, IISU, VSSC and LPSC
-                    through industrial visits, internships, and case studies oriented around
-                    space-grade manufacturing challenges.
+                    While our roots lie in handling demanding aerospace-grade challenges with exposure to ISRO facilities (VSSC, LPSC, CMSE, IISU), the training builds a core foundation of versatility. Our students are prepared to tackle precision engineering in automobile, biomedical devices, heavy machinery, and industrial operations.
                   </p>
                   <p>
-                    Graduates are equipped for roles in aerospace manufacturing, defence production,
-                    advanced R&amp;D labs, and cutting-edge manufacturing enterprises.
+                    Graduates are equipped for diverse, high-impact roles in aerospace and defense production, automotive manufacturing, advanced biomedical machinery, operations management, CAD/CAM software development, and cutting-edge R&D labs.
                   </p>
                 </div>
               </ScrollReveal>

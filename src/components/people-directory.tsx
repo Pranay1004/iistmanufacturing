@@ -165,17 +165,6 @@ export function PeopleDirectory() {
 
           {/* Directory Grid */}
           <section className="flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-              <p className="font-data text-xs uppercase tracking-[0.18em] text-[var(--ceramic-muted)] select-none">
-                Showing {Math.min(visibleCount, filtered.length)} of {filtered.length} profiles
-              </p>
-              {visibleCount < filtered.length && (
-                <span className="font-data text-[10px] text-[var(--arc-blue)] animate-pulse uppercase select-none">
-                  ▼ Scroll to reveal more profiles
-                </span>
-              )}
-            </div>
-            
             <div className="grid gap-4 md:grid-cols-2">
               {filtered.slice(0, visibleCount).map((person) => (
                 <PersonCard key={person.slug} person={person} onPreview={setPreview} />
