@@ -1,57 +1,359 @@
+import Link from "next/link";
+import { ArrowRight, Briefcase, GraduationCap, Mail, MapPin, Star, Users } from "lucide-react";
 import { PageFrame } from "@/components/site-shell";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { MetalButton } from "@/components/ui/MetalButton";
 import { people } from "@/lib/data";
 
+// Domain groups for roles/skills
+const domainSkills = [
+  {
+    domain: "Additive Manufacturing",
+    color: "arc-blue",
+    roles: ["Metal AM Engineer", "Process Engineer", "AM Design Engineer", "DMLS Operator"],
+  },
+  {
+    domain: "Composites & Materials",
+    color: "forge-amber",
+    roles: ["Composite Engineer", "Materials Analyst", "NDT Engineer", "Laminate Design Engineer"],
+  },
+  {
+    domain: "Welding & Joining",
+    color: "laser-green",
+    roles: ["Welding Engineer", "Friction Stir Welding", "Weld Inspection Engineer", "Process Metallurgist"],
+  },
+  {
+    domain: "CNC & Machining",
+    color: "arc-blue",
+    roles: ["CNC Programmer", "Manufacturing Engineer", "Tooling Engineer", "CAD-CAM Specialist"],
+  },
+  {
+    domain: "Quality & Metrology",
+    color: "forge-amber",
+    roles: ["Quality Engineer", "Metrology Engineer", "PGET", "QA Analyst"],
+  },
+  {
+    domain: "Systems & Operations",
+    color: "laser-green",
+    roles: ["Production Engineer", "Operations Engineer", "Smart Manufacturing Engineer", "Supply Chain Engineer"],
+  },
+];
+
+const colorMap: Record<string, { badge: string; label: string; tag: string }> = {
+  "arc-blue": {
+    badge: "bg-[var(--arc-blue-dim)] border-[var(--arc-blue)]/20 text-[var(--arc-blue)]",
+    label: "text-[var(--arc-blue)]",
+    tag: "bg-[var(--arc-blue-dim)] text-[var(--arc-blue)] border-[var(--arc-blue)]/15",
+  },
+  "forge-amber": {
+    badge: "bg-[var(--forge-amber-dim)] border-[var(--forge-amber)]/20 text-[var(--forge-amber)]",
+    label: "text-[var(--forge-amber)]",
+    tag: "bg-[var(--forge-amber-dim)] text-[var(--forge-amber)] border-[var(--forge-amber)]/15",
+  },
+  "laser-green": {
+    badge: "bg-[rgba(47,139,95,0.07)] border-[var(--laser-green)]/20 text-[var(--laser-green)]",
+    label: "text-[var(--laser-green)]",
+    tag: "bg-[rgba(47,139,95,0.07)] text-[var(--laser-green)] border-[var(--laser-green)]/15",
+  },
+};
+
 export default function PlacementsPage() {
-  const publicPeople = people.filter((person) => person.cohort !== "2026-2028");
-  const roles = Array.from(
-    new Set(
-      publicPeople
-        .flatMap((person) => person.seekingRoles ?? [])
-        .filter(Boolean),
-    ),
-  );
+  const outgoingBatch = people.filter((p) => p.cohort === "2024-2026");
+  const currentBatch = people.filter((p) => p.cohort === "2025-2027");
+
+  const stats = [
+    { value: String(outgoingBatch.length), label: "Outgoing profiles", icon: GraduationCap },
+    { value: String(currentBatch.length), label: "Intern-ready scholars", icon: Users },
+    { value: "6+", label: "Skill domains", icon: Star },
+    { value: "20+", label: "Roles matched", icon: Briefcase },
+  ];
 
   return (
     <PageFrame>
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <ScrollReveal>
-          <SectionLabel className="mb-3">Recruitment</SectionLabel>
-          <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl">
-            A recruiter-facing view of manufacturing skills, roles, and resume-ready profiles.
-          </h1>
-        </ScrollReveal>
+      <main>
+        {/* ─── HERO ─── */}
+        <section className="relative border-b border-[var(--edge)] overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--arc-blue-dim)_0%,_transparent_60%)] pointer-events-none" />
+          <div className="absolute inset-0 surface-grid pointer-events-none opacity-50" />
+          <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <ScrollReveal>
+              <SectionLabel className="mb-4">For Recruiters</SectionLabel>
+              <h1 className="mt-2 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl lg:text-6xl">
+                Hire aerospace manufacturing talent from{" "}
+                <span className="gradient-shimmer">IIST's M.Tech program.</span>
+              </h1>
+              <p className="mt-6 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg">
+                The Manufacturing Technology program at IIST trains engineers for the aerospace
+                and space sector — covering additive manufacturing, composites, welding, precision
+                machining, quality engineering, and manufacturing systems.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <MetalButton href="mailto:sooraj@iist.ac.in" variant="primary">
+                  Contact Program Coordinator
+                  <ArrowRight size={16} />
+                </MetalButton>
+                <MetalButton href="/people" variant="secondary">
+                  Browse All Profiles
+                </MetalButton>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
-          <ScrollReveal variant="left" as="aside">
-            <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Role interests</h2>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {roles.map((role) => (
-                <span key={role} className="rounded-md bg-[var(--forge-amber-dim)] px-2.5 py-1 text-sm text-[var(--forge-amber)] transition-colors duration-200 hover:bg-[var(--forge-amber)] hover:text-white">
-                  {role}
-                </span>
+        {/* ─── STATS ─── */}
+        <section className="border-b border-[var(--edge)] bg-[var(--void-deep)]">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-[var(--edge)] lg:grid-cols-4 lg:divide-y-0 px-4 sm:px-6 lg:px-8">
+            {stats.map(({ value, label, icon: Icon }) => (
+              <div key={label} className="flex flex-col items-center py-8 text-center gap-2">
+                <Icon size={20} className="text-[var(--arc-blue)]" aria-hidden />
+                <p className="font-display text-4xl font-bold text-[var(--ceramic)]">{value}</p>
+                <p className="font-data text-[10px] uppercase tracking-[0.18em] text-[var(--ceramic-muted)]">{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ─── OUTGOING BATCH ─── */}
+        <section className="border-b border-[var(--edge)]">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+            <ScrollReveal>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-10">
+                <div>
+                  <SectionLabel color="amber" className="mb-2">Class of 2024–2026</SectionLabel>
+                  <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">
+                    Outgoing batch — available now
+                  </h2>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ceramic-muted)]">
+                    These scholars are completing their M.Tech thesis and are available for full-time
+                    positions, project roles, and industry collaborations.
+                  </p>
+                </div>
+                <MetalButton href="/people" variant="ghost">
+                  View full profiles <ArrowRight size={14} />
+                </MetalButton>
+              </div>
+            </ScrollReveal>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {outgoingBatch.map((person, i) => (
+                <ScrollReveal key={person.slug} variant="up">
+                  <Link
+                    href={`/people/${person.slug}`}
+                    className="group block rounded-xl border border-[var(--edge)] bg-[var(--void-deep)] p-5 transition-all duration-200 hover:border-[var(--forge-amber)] hover:shadow-[var(--shadow-glow-amber)] hover:-translate-y-0.5"
+                  >
+                    {/* Avatar placeholder */}
+                    <div className="mb-4 grid size-12 place-items-center rounded-xl bg-[var(--forge-amber-dim)] border border-[var(--forge-amber)]/15 font-display text-lg font-bold text-[var(--forge-amber)]">
+                      {person.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
+                    </div>
+
+                    <p className="font-display text-base font-semibold text-[var(--ceramic)] group-hover:text-[var(--forge-amber)] transition-colors">
+                      {person.name}
+                    </p>
+                    <p className="mt-0.5 font-data text-[10px] uppercase tracking-wider text-[var(--forge-amber)]">
+                      {person.specialization}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <span className="rounded-full border border-[var(--forge-amber)]/20 bg-[var(--forge-amber-dim)] px-2 py-0.5 text-[10px] font-medium text-[var(--forge-amber)]">
+                        Open to roles
+                      </span>
+                      {person.linkedin && (
+                        <span className="rounded-full border border-[var(--edge)] px-2 py-0.5 text-[10px] text-[var(--ceramic-muted)]">
+                          LinkedIn ↗
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </ScrollReveal>
               ))}
             </div>
-          </ScrollReveal>
+          </div>
+        </section>
 
-          <ScrollReveal variant="right" as="section">
-            <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Batch readiness</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              {[
-                ["2024-2026", "Outgoing batch", "Profiles ready for thesis, full-time, and project discussions."],
-                ["2025-2027", "Current batch", "Open for internships, projects, and industry mentoring."],
-              ].map(([batch, title, text]) => (
-                <GlassCard key={batch}>
-                  <SectionLabel color="amber" className="mb-2">{batch}</SectionLabel>
-                  <h3 className="font-display text-xl font-semibold text-[var(--ceramic)]">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[var(--ceramic-muted)]">{text}</p>
-                </GlassCard>
+        {/* ─── CURRENT BATCH (INTERNS) ─── */}
+        <section className="border-b border-[var(--edge)] bg-[var(--void-deep)] surface-grid">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+            <ScrollReveal>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-10">
+                <div>
+                  <SectionLabel color="blue" className="mb-2">Class of 2025–2027</SectionLabel>
+                  <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">
+                    Current batch — open for internships
+                  </h2>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ceramic-muted)]">
+                    These scholars are in their second semester, available for industry internships,
+                    summer projects, and thesis collaborations starting mid-2026.
+                  </p>
+                </div>
+                <MetalButton href="/people" variant="ghost">
+                  View full profiles <ArrowRight size={14} />
+                </MetalButton>
+              </div>
+            </ScrollReveal>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {currentBatch.map((person) => (
+                <ScrollReveal key={person.slug} variant="up">
+                  <Link
+                    href={`/people/${person.slug}`}
+                    className="group block rounded-xl border border-[var(--edge)] bg-white p-5 transition-all duration-200 hover:border-[var(--arc-blue)] hover:shadow-[var(--shadow-glow-blue)] hover:-translate-y-0.5"
+                  >
+                    <div className="mb-4 grid size-12 place-items-center rounded-xl bg-[var(--arc-blue-dim)] border border-[var(--arc-blue)]/15 font-display text-lg font-bold text-[var(--arc-blue)]">
+                      {person.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
+                    </div>
+
+                    <p className="font-display text-base font-semibold text-[var(--ceramic)] group-hover:text-[var(--arc-blue)] transition-colors">
+                      {person.name}
+                    </p>
+                    <p className="mt-0.5 font-data text-[10px] uppercase tracking-wider text-[var(--arc-blue)]">
+                      {person.specialization}
+                    </p>
+
+                    <div className="mt-3">
+                      <span className="rounded-full border border-[var(--arc-blue)]/20 bg-[var(--arc-blue-dim)] px-2 py-0.5 text-[10px] font-medium text-[var(--arc-blue)]">
+                        Open to internships
+                      </span>
+                    </div>
+                  </Link>
+                </ScrollReveal>
               ))}
             </div>
-          </ScrollReveal>
-        </div>
+          </div>
+        </section>
+
+        {/* ─── SKILL DOMAINS ─── */}
+        <section className="border-b border-[var(--edge)]">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+            <ScrollReveal>
+              <SectionLabel className="mb-3">Skill Matrix</SectionLabel>
+              <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">
+                Core competency domains
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--ceramic-muted)]">
+                Profiles are distributed across six core manufacturing domains, each aligned to
+                aerospace and space industry requirements.
+              </p>
+            </ScrollReveal>
+
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {domainSkills.map((domain) => {
+                const colors = colorMap[domain.color];
+                return (
+                  <ScrollReveal key={domain.domain} variant="up">
+                    <GlassCard className="h-full">
+                      <div className={`mb-4 inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-wider ${colors.badge}`}>
+                        {domain.domain}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {domain.roles.map((role) => (
+                          <span
+                            key={role}
+                            className={`rounded-md border px-2.5 py-1 text-xs font-medium ${colors.tag}`}
+                          >
+                            {role}
+                          </span>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── PROGRAM CONTEXT ─── */}
+        <section className="border-b border-[var(--edge)] bg-[var(--void-deep)] surface-grid">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-2 items-start">
+              <ScrollReveal variant="left">
+                <SectionLabel color="amber" className="mb-3">Program Context</SectionLabel>
+                <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">
+                  Why IIST Manufacturing Technology?
+                </h2>
+                <div className="mt-6 space-y-4 text-sm leading-7 text-[var(--ceramic-muted)]">
+                  <p>
+                    The M.Tech Manufacturing Technology program at the Indian Institute of Space
+                    Science & Technology (IIST) is a 2-year postgraduate program embedded in the
+                    Aerospace Engineering department.
+                  </p>
+                  <p>
+                    Students receive exposure to ISRO facilities including CMSE, IISU, VSSC and LPSC
+                    through industrial visits, internships, and case studies oriented around
+                    space-grade manufacturing challenges.
+                  </p>
+                  <p>
+                    Graduates are equipped for roles in aerospace manufacturing, defence production,
+                    advanced R&amp;D labs, and cutting-edge manufacturing enterprises.
+                  </p>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal variant="right">
+                <div className="space-y-4">
+                  {[
+                    ["ISRO Centre Exposure", "Industrial visits to VSSC, LPSC, IISU, CMSE"],
+                    ["Hands-on Labs", "Composite, welding, additive, metrology facilities"],
+                    ["Thesis Projects", "Real aerospace manufacturing challenges"],
+                    ["PhD Pathways", "Aligned PhD research opportunities at IIST"],
+                  ].map(([title, desc]) => (
+                    <div
+                      key={title}
+                      className="flex items-start gap-4 rounded-xl border border-[var(--edge)] bg-white p-4"
+                    >
+                      <div className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--arc-blue-dim)]">
+                        <Star size={15} className="text-[var(--arc-blue)]" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-[var(--ceramic)]">{title}</p>
+                        <p className="mt-0.5 text-sm text-[var(--ceramic-muted)]">{desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── CTA ─── */}
+        <section className="bg-gradient-to-br from-[var(--arc-blue)] to-[var(--cool-zone)]">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 text-center">
+            <ScrollReveal>
+              <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">
+                Ready to hire from IIST?
+              </h2>
+              <p className="mt-4 max-w-xl mx-auto text-base text-white/80 leading-7">
+                Reach out to the program coordinator to discuss campus recruitment, project
+                sponsorships, and internship programs.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4 justify-center">
+                <a
+                  href="mailto:sooraj@iist.ac.in"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[var(--arc-blue)] hover:bg-white/90 transition-all shadow-lg"
+                >
+                  <Mail size={16} />
+                  Email Program Coordinator
+                </a>
+                <a
+                  href="https://www.iist.ac.in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all"
+                >
+                  <MapPin size={16} />
+                  Visit IIST Website
+                </a>
+              </div>
+
+              <p className="mt-8 font-data text-[10px] uppercase tracking-[0.2em] text-white/50">
+                Indian Institute of Space Science and Technology · Valiamala, Thiruvananthapuram
+              </p>
+            </ScrollReveal>
+          </div>
+        </section>
       </main>
     </PageFrame>
   );

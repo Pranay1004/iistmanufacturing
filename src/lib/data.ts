@@ -1,4 +1,4 @@
-export type PersonType = "faculty" | "student" | "phd";
+export type PersonType = "faculty" | "student" | "phd" | "staff";
 export type Availability = "Open to roles" | "Open to internships" | "Research focused" | "Joining soon";
 
 export type Project = {
@@ -395,6 +395,32 @@ export const people: Person[] = [
     ],
   },
 ];
+
+// Lab Staff & Technical Support
+people.push({
+  slug: "prakash",
+  type: "staff",
+  name: "Mr. Prakash",
+  role: "Technical Staff",
+  specialization: "Laboratory Operations & Technical Support",
+  officialEmail: "prakash@iist.ac.in",
+  location: "Manufacturing Technology Lab",
+  availability: "Research focused",
+  synopsis:
+    "Technical staff supporting the Manufacturing Technology program at IIST. Responsible for laboratory operations, equipment maintenance, and hands-on support for student experiments and research activities.",
+  skills: ["Lab management", "Equipment maintenance", "Technical support", "Student assistance"],
+  skillGroups: {
+    Technical: ["Lab operations", "Equipment calibration", "Process support"],
+    Support: ["Student assistance", "Safety compliance", "Resource management"],
+  },
+  projects: [],
+  profileSections: [
+    {
+      title: "Role & Responsibilities",
+      body: "Provides technical support for all manufacturing laboratory activities, maintains equipment, and assists students and faculty in research and coursework.",
+    },
+  ],
+});
 
 const currentStudents = [
   ["aniket-balaji-parnale", "Aniket Balaji Parnale", "SC25M141", "Quality Engineering", false],

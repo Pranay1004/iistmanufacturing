@@ -12,6 +12,7 @@ const tabs: { label: string; value: PersonType }[] = [
 
 const cohortsForType: Record<PersonType, string[]> = {
   faculty: [],
+  staff: [],
   student: ["2025-2027", "2024-2026", "2026-2028"],
   phd: ["2025", "2024", "2023", "2022", "2021"],
 };

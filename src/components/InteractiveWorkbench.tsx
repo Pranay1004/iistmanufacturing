@@ -1,34 +1,32 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { useAssets } from "@/lib/assets";
+import React, { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { 
-  Cpu, Layers, Zap, PenTool, Activity, 
-  Rotate3d, Disc, Hammer, Compass, CheckCircle
+import {
+  Cpu, Layers, Zap, PenTool, Activity,
+  Rotate3d, Disc, Hammer, Compass, CheckCircle, BookOpen
 } from "lucide-react";
+
+interface ProcessParam {
+  param: string;
+  typical: string;
+  unit: string;
+}
 
 interface CourseTopic {
   id: string;
   name: string;
   code: string;
-  icon: React.ComponentType<{ className?: string }>;
-  summary: string;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
   color: "blue" | "amber" | "green" | "saffron";
+  summary: string;
   details: string[];
-}
-
-interface WorkbenchParticle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  age: number;
-  maxAge: number;
-  color?: string;
-  size?: number;
-  type?: string;
+  params: ProcessParam[];
+  formulaLabel: string;
+  formula: string;
+  formulaTerms: string[];
+  diagramType: "cad" | "cam" | "additive" | "subtractive" | "nonconventional" | "metrology" | "welding" | "composite" | "fem" | "materials";
 }
 
 const topics: CourseTopic[] = [
@@ -40,6 +38,16 @@ const topics: CourseTopic[] = [
     color: "blue",
     summary: "Parametric design, 3D modeling, assembly hierarchy, and dimensioning standards for space structures.",
     details: ["3D solid modeling", "Geometric dimensioning & tolerancing", "Assembly constraint networks", "B-rep & CSG modeling"],
+    params: [
+      { param: "Tolerance Grade", typical: "IT6–IT8", unit: "ISO" },
+      { param: "Surface Finish", typical: "1.6–3.2", unit: "μm Ra" },
+      { param: "Fit Type", typical: "H7/h6 (clearance)", unit: "ISO" },
+      { param: "Drafting Standard", typical: "ISO 128 / ASME Y14.5", unit: "—" },
+    ],
+    formulaLabel: "Taylor's Principle (Envelope Condition)",
+    formula: "MMC envelope ≥ actual mating size",
+    formulaTerms: ["MMC = Maximum Material Condition", "LMC = Least Material Condition", "True Position tolerance zone applies at MMC"],
+    diagramType: "cad",
   },
   {
     id: "cam",
@@ -49,6 +57,16 @@ const topics: CourseTopic[] = [
     color: "amber",
     summary: "CNC tooling paths, G-code/M-code generation, machine post-processing, and multi-axis control loops.",
     details: ["Multi-axis cutter paths", "G-code compiler", "Feed & speed optimization", "Post-processor algorithms"],
+    params: [
+      { param: "Cutting Speed (Vc)", typical: "80–200", unit: "m/min" },
+      { param: "Feed Rate (f)", typical: "0.1–0.4", unit: "mm/rev" },
+      { param: "Depth of Cut (ap)", typical: "0.5–4", unit: "mm" },
+      { param: "Spindle Speed (N)", typical: "2000–8000", unit: "RPM" },
+    ],
+    formulaLabel: "Taylor's Tool Life Equation",
+    formula: "VcTⁿ = C",
+    formulaTerms: ["Vc = cutting speed (m/min)", "T = tool life (min)", "n = tool life exponent (~0.25 for HSS)", "C = constant (material dependent)"],
+    diagramType: "cam",
   },
   {
     id: "additive",
@@ -58,6 +76,16 @@ const topics: CourseTopic[] = [
     color: "green",
     summary: "Laser powder bed fusion, fused filament fabrication, stereolithography, and design for additive manufacturing.",
     details: ["Laser scan strategies", "Thermal stress analysis", "Powder bed optimization", "Lattice structure design"],
+    params: [
+      { param: "Layer Thickness", typical: "20–100", unit: "μm" },
+      { param: "Laser Power", typical: "100–400", unit: "W" },
+      { param: "Scan Speed", typical: "500–1500", unit: "mm/s" },
+      { param: "Hatch Spacing", typical: "80–120", unit: "μm" },
+    ],
+    formulaLabel: "Volumetric Energy Density",
+    formula: "E = P / (v × h × t)",
+    formulaTerms: ["P = laser power (W)", "v = scan speed (mm/s)", "h = hatch spacing (mm)", "t = layer thickness (mm)"],
+    diagramType: "additive",
   },
   {
     id: "subtractive",
@@ -67,6 +95,16 @@ const topics: CourseTopic[] = [
     color: "saffron",
     summary: "Milling, turning, grinding, tool-wear mechanics, shear-zone thermodynamics, and surface finish profiles.",
     details: ["Orthogonal cutting", "Merchant's force circle", "Taylor's tool life formula", "Surface roughness analysis"],
+    params: [
+      { param: "Shear Angle (φ)", typical: "25–45", unit: "degrees" },
+      { param: "Rake Angle (α)", typical: "5–15", unit: "degrees" },
+      { param: "Specific Cutting Force", typical: "1000–3500", unit: "N/mm²" },
+      { param: "Tool Wear (VB)", typical: "≤ 0.3", unit: "mm" },
+    ],
+    formulaLabel: "Merchant's Force Circle",
+    formula: "φ = 45° + α/2 - λ/2",
+    formulaTerms: ["φ = shear angle", "α = rake angle", "λ = friction angle = arctan(μ)", "μ = coefficient of friction at chip-tool interface"],
+    diagramType: "subtractive",
   },
   {
     id: "nonconventional",
@@ -76,6 +114,16 @@ const topics: CourseTopic[] = [
     color: "blue",
     summary: "Electro-discharge machining (EDM), laser-beam cutting, abrasive jet processing, and chemical milling.",
     details: ["Spark erosion physics", "Plasma channel energetics", "Dielectric flow modeling", "Material removal rate"],
+    params: [
+      { param: "Discharge Voltage", typical: "40–120", unit: "V" },
+      { param: "Pulse Duration", typical: "1–1000", unit: "μs" },
+      { param: "Electrode Gap", typical: "0.01–0.05", unit: "mm" },
+      { param: "MRR (EDM)", typical: "1–10", unit: "mm³/min" },
+    ],
+    formulaLabel: "EDM Material Removal Rate",
+    formula: "MRR = K × Iₑ × Tₒⁿ",
+    formulaTerms: ["K = material constant", "Iₑ = discharge current (A)", "Tₒ = pulse ON time (μs)", "n = exponent (~0.4 for metals)"],
+    diagramType: "nonconventional",
   },
   {
     id: "metrology",
@@ -85,6 +133,16 @@ const topics: CourseTopic[] = [
     color: "green",
     summary: "Coordinate measuring machines (CMM), surface laser scanning, optical comparators, and statistical quality control.",
     details: ["Interferometry principles", "GD&T inspection protocols", "Uncertainty budget calculation", "Laser profilometry"],
+    params: [
+      { param: "CMM Accuracy", typical: "±1–5", unit: "μm" },
+      { param: "Surface Roughness Ra", typical: "0.4–6.3", unit: "μm" },
+      { param: "Calibration Interval", typical: "6–12", unit: "months" },
+      { param: "Cp / Cpk Target", typical: "≥ 1.33", unit: "—" },
+    ],
+    formulaLabel: "Process Capability Index",
+    formula: "Cpk = min[(USL-μ)/3σ, (μ-LSL)/3σ]",
+    formulaTerms: ["USL = Upper Specification Limit", "LSL = Lower Specification Limit", "μ = process mean", "σ = process standard deviation"],
+    diagramType: "metrology",
   },
   {
     id: "welding",
@@ -94,6 +152,16 @@ const topics: CourseTopic[] = [
     color: "amber",
     summary: "TIG, MIG, friction stir welding, electron beam welding, and heat-affected zone metallurgical studies.",
     details: ["Friction stir mechanics", "Heat-affected zone (HAZ) phase shifts", "Plasma arc dynamics", "Weld bead geometry control"],
+    params: [
+      { param: "Heat Input (HI)", typical: "0.5–3", unit: "kJ/mm" },
+      { param: "Welding Current", typical: "80–350", unit: "A" },
+      { param: "Travel Speed", typical: "200–600", unit: "mm/min" },
+      { param: "Preheat Temperature", typical: "100–300", unit: "°C" },
+    ],
+    formulaLabel: "Heat Input Equation",
+    formula: "HI = (V × I × 60) / (1000 × S)",
+    formulaTerms: ["V = arc voltage (V)", "I = welding current (A)", "S = travel speed (mm/min)", "Result in kJ/mm"],
+    diagramType: "welding",
   },
   {
     id: "composite",
@@ -103,6 +171,16 @@ const topics: CourseTopic[] = [
     color: "saffron",
     summary: "Autoclave processing, filament winding, vacuum-assisted resin transfer molding (VARTM), and layup mechanics.",
     details: ["Classical laminate theory", "Resin flow kinetics", "Void formation mitigation", "Filament tension control"],
+    params: [
+      { param: "Cure Temperature", typical: "120–180", unit: "°C" },
+      { param: "Autoclave Pressure", typical: "5–7", unit: "bar" },
+      { param: "Ply Orientation", typical: "[0/±45/90]s", unit: "°" },
+      { param: "Fibre Volume Fraction", typical: "0.55–0.65", unit: "Vf" },
+    ],
+    formulaLabel: "Rule of Mixtures (Longitudinal Modulus)",
+    formula: "E₁ = Ef·Vf + Em·(1-Vf)",
+    formulaTerms: ["Ef = fibre modulus", "Em = matrix modulus", "Vf = fibre volume fraction", "E₁ = longitudinal composite modulus"],
+    diagramType: "composite",
   },
   {
     id: "fem",
@@ -112,6 +190,16 @@ const topics: CourseTopic[] = [
     color: "blue",
     summary: "Stress-strain tensors, mesh generation, boundary conditions, dynamic response, and thermo-structural analysis.",
     details: ["Stiffness matrix derivation", "Isoparametric formulation", "Von Mises yield criterion", "Thermal expansion loads"],
+    params: [
+      { param: "Element Type", typical: "Quad4 / Hex8", unit: "—" },
+      { param: "Mesh Size", typical: "0.5–5", unit: "mm" },
+      { param: "Poisson's Ratio (ν)", typical: "0.25–0.35", unit: "—" },
+      { param: "Young's Modulus", typical: "70–200", unit: "GPa" },
+    ],
+    formulaLabel: "Global FEM Stiffness Equation",
+    formula: "[K]{u} = {F}",
+    formulaTerms: ["[K] = global stiffness matrix", "{u} = nodal displacement vector", "{F} = external force vector", "Solved by Gaussian elimination or iterative methods"],
+    diagramType: "fem",
   },
   {
     id: "materials",
@@ -121,1012 +209,504 @@ const topics: CourseTopic[] = [
     color: "green",
     summary: "Superalloys, titanium grades, metal matrix composites, shape memory alloys, and structural characterization.",
     details: ["Intermetallics & superalloys", "Dislocation glide & climb", "Austenite-Martensite phase shifts", "SEM & XRD micro-analysis"],
+    params: [
+      { param: "Ultimate Tensile Strength", typical: "800–1400", unit: "MPa (Ti alloys)" },
+      { param: "Melting Point (Ni superalloy)", typical: "1300–1450", unit: "°C" },
+      { param: "Density (CFRP)", typical: "1.6–1.8", unit: "g/cm³" },
+      { param: "Fatigue Limit", typical: "0.4–0.5 × UTS", unit: "—" },
+    ],
+    formulaLabel: "Hall-Petch Strengthening",
+    formula: "σy = σ₀ + K·d^(-1/2)",
+    formulaTerms: ["σy = yield strength", "σ₀ = friction stress", "K = strengthening coefficient", "d = grain size (μm)"],
+    diagramType: "materials",
   },
 ];
 
+const colorMap = {
+  blue:    { accent: "var(--arc-blue)",    dim: "var(--arc-blue-dim)",    text: "text-[var(--arc-blue)]",    badge: "bg-[var(--arc-blue-dim)] text-[var(--arc-blue)] border-[var(--arc-blue)]/20", tag: "bg-[var(--arc-blue-dim)] text-[var(--arc-blue)] border-[var(--arc-blue)]/15" },
+  amber:   { accent: "var(--forge-amber)", dim: "var(--forge-amber-dim)", text: "text-[var(--forge-amber)]", badge: "bg-[var(--forge-amber-dim)] text-[var(--forge-amber)] border-[var(--forge-amber)]/20", tag: "bg-[var(--forge-amber-dim)] text-[var(--forge-amber)] border-[var(--forge-amber)]/15" },
+  green:   { accent: "var(--laser-green)", dim: "rgba(47,139,95,0.07)",   text: "text-[var(--laser-green)]", badge: "bg-[rgba(47,139,95,0.07)] text-[var(--laser-green)] border-[var(--laser-green)]/20", tag: "bg-[rgba(47,139,95,0.07)] text-[var(--laser-green)] border-[var(--laser-green)]/15" },
+  saffron: { accent: "var(--saffron)",     dim: "rgba(208,90,30,0.07)",   text: "text-[var(--saffron)]",    badge: "bg-[rgba(208,90,30,0.07)] text-[var(--saffron)] border-[var(--saffron)]/20", tag: "bg-[rgba(208,90,30,0.07)] text-[var(--saffron)] border-[var(--saffron)]/15" },
+};
+
+// Static CSS/SVG diagrams for each process type
+function ProcessDiagram({ type, color }: { type: CourseTopic["diagramType"]; color: CourseTopic["color"] }) {
+  const c = colorMap[color];
+
+  if (type === "cad") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="CAD wireframe diagram">
+          {/* Grid */}
+          <defs>
+            <pattern id="cad-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke={c.accent} strokeWidth="0.3" opacity="0.25" />
+            </pattern>
+          </defs>
+          <rect width="320" height="220" fill={`url(#cad-grid)`} />
+          {/* Isometric box */}
+          <polygon points="160,30 240,70 240,140 160,180 80,140 80,70" fill="none" stroke={c.accent} strokeWidth="1.5" opacity="0.7" />
+          <line x1="160" y1="30" x2="160" y2="180" stroke={c.accent} strokeWidth="0.8" strokeDasharray="5,4" opacity="0.4" />
+          <line x1="80" y1="70" x2="240" y2="70" stroke={c.accent} strokeWidth="0.8" strokeDasharray="5,4" opacity="0.4" />
+          <line x1="80" y1="140" x2="240" y2="140" stroke={c.accent} strokeWidth="0.8" strokeDasharray="5,4" opacity="0.4" />
+          {/* Dimension arrows */}
+          <line x1="80" y1="195" x2="240" y2="195" stroke={c.accent} strokeWidth="1" markerEnd="url(#arrow)" opacity="0.7" />
+          <text x="155" y="210" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.8">200.00 mm ±0.05</text>
+          {/* Corner dots */}
+          <circle cx="160" cy="30" r="3" fill={c.accent} opacity="0.8" />
+          <circle cx="240" cy="70" r="3" fill={c.accent} opacity="0.8" />
+          <circle cx="240" cy="140" r="3" fill={c.accent} opacity="0.8" />
+          <circle cx="80" cy="70" r="3" fill={c.accent} opacity="0.8" />
+          <circle cx="80" cy="140" r="3" fill={c.accent} opacity="0.8" />
+          <circle cx="160" cy="180" r="3" fill={c.accent} opacity="0.8" />
+          {/* Labels */}
+          <text x="255" y="108" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.7">125.00</text>
+          <text x="10" y="108" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.7">W=160</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "cam") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="CAM CNC toolpath diagram">
+          {/* Workpiece */}
+          <rect x="40" y="100" width="240" height="70" rx="2" fill="rgba(90,98,100,0.15)" stroke={c.accent} strokeWidth="1.5" />
+          {/* Toolpath (dashed) */}
+          <path d="M60,80 L80,80 L80,100" fill="none" stroke={c.accent} strokeWidth="1.2" strokeDasharray="5,3" opacity="0.5" />
+          <path d="M80,80 L200,80" fill="none" stroke={c.accent} strokeWidth="2" opacity="0.9" />
+          <path d="M200,80 L220,80 L220,100" fill="none" stroke={c.accent} strokeWidth="1.2" strokeDasharray="5,3" opacity="0.5" />
+          {/* Tool head */}
+          <polygon points="140,55 150,55 152,80 138,80" fill="rgba(90,98,100,0.5)" stroke={c.accent} strokeWidth="1.5" />
+          <rect x="135" y="42" width="20" height="15" rx="2" fill="rgba(90,98,100,0.4)" stroke={c.accent} strokeWidth="1" />
+          {/* Chips */}
+          <circle cx="148" cy="82" r="3" fill={c.accent} opacity="0.7" />
+          {/* Labels */}
+          <text x="160" y="40" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.8" textAnchor="middle">SPINDLE: 6000 RPM</text>
+          <text x="160" y="185" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.7" textAnchor="middle">FEED: F1200 · DEPTH: 2mm</text>
+          {/* G-code annotation */}
+          <text x="15" y="95" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.6">G01</text>
+          <text x="200" y="95" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.6">G02</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "additive") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="Additive manufacturing layer diagram">
+          {/* Build platform */}
+          <rect x="60" y="185" width="200" height="8" rx="2" fill="rgba(90,98,100,0.4)" stroke="rgba(90,98,100,0.5)" strokeWidth="1" />
+          {/* Printed layers */}
+          {[0,1,2,3,4,5].map((i) => (
+            <rect key={i} x="80" y={175 - i*15} width="160" height="12" rx="1"
+              fill={`rgba(47,139,95,${0.1 + i*0.06})`}
+              stroke={c.accent} strokeWidth={i === 5 ? "2" : "1"}
+              opacity={i === 5 ? 1 : 0.7}
+            />
+          ))}
+          {/* Nozzle */}
+          <polygon points="150,60 170,60 165,90 155,90" fill="rgba(90,98,100,0.5)" stroke={c.accent} strokeWidth="1.5" />
+          <rect x="148" y="45" width="24" height="18" rx="2" fill="rgba(90,98,100,0.4)" stroke={c.accent} strokeWidth="1.2" />
+          {/* Laser/extrusion beam */}
+          <line x1="160" y1="90" x2="160" y2="100" stroke={c.accent} strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+          {/* Labels */}
+          <text x="255" y="160" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.8">Layer 6</text>
+          <text x="255" y="173" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">50μm</text>
+          <text x="160" y="30" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.8">LAYER DEPOSITION — LPBF</text>
+          {/* Temp HUD */}
+          <rect x="15" y="50" width="65" height="45" rx="4" fill="rgba(17,24,32,0.7)" stroke={c.accent} strokeWidth="0.8" opacity="0.8" />
+          <text x="47" y="65" textAnchor="middle" fontSize="7" fill={c.accent} fontFamily="monospace">CHAMBER</text>
+          <text x="47" y="78" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" fontWeight="bold">245°C</text>
+          <text x="47" y="90" textAnchor="middle" fontSize="7" fill={c.accent} fontFamily="monospace">Ar inert gas</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "subtractive") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="Subtractive machining diagram">
+          {/* Workpiece before */}
+          <rect x="40" y="80" width="240" height="80" rx="2" fill="rgba(90,98,100,0.12)" stroke="rgba(90,98,100,0.3)" strokeWidth="1.2" strokeDasharray="5,3" />
+          {/* Machined step */}
+          <path d="M40,80 L40,140 L200,140 L200,110 L280,110 L280,80 Z" fill="rgba(90,98,100,0.25)" stroke={c.accent} strokeWidth="1.5" />
+          {/* Tool cutter circle */}
+          <circle cx="200" cy="95" r="20" fill="rgba(208,90,30,0.1)" stroke={c.accent} strokeWidth="1.5" />
+          {/* Chip flow */}
+          <path d="M200,75 Q215,55 225,40" fill="none" stroke={c.accent} strokeWidth="1.2" strokeDasharray="3,2" opacity="0.6" />
+          {/* Labels */}
+          <text x="120" y="70" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.8">ap = 2mm DEPTH</text>
+          <text x="160" y="185" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.7">Shear Plane Angle φ = 35°</text>
+          <text x="220" y="35" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.6">Chip ↗</text>
+          {/* Arrows showing forces */}
+          <line x1="200" y1="95" x2="200" y2="115" stroke={c.accent} strokeWidth="1.5" markerEnd="url(#arr)" opacity="0.8" />
+          <text x="206" y="113" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">Fc</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "nonconventional") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="EDM discharge diagram">
+          {/* Workpiece */}
+          <rect x="60" y="140" width="200" height="55" rx="2" fill="rgba(90,98,100,0.2)" stroke="rgba(90,98,100,0.4)" strokeWidth="1.5" />
+          {/* Tool electrode */}
+          <rect x="120" y="60" width="80" height="45" rx="2" fill={`rgba(23,111,134,0.15)`} stroke={c.accent} strokeWidth="1.5" />
+          {/* Discharge gap */}
+          <line x1="160" y1="105" x2="155" y2="115" stroke="white" strokeWidth="2" opacity="0.9" />
+          <line x1="155" y1="115" x2="163" y2="122" stroke="white" strokeWidth="2" opacity="0.9" />
+          <line x1="163" y1="122" x2="157" y2="130" stroke="white" strokeWidth="2" opacity="0.9" />
+          <line x1="157" y1="130" x2="160" y2="140" stroke="white" strokeWidth="2" opacity="0.9" />
+          {/* Glow at contact */}
+          <circle cx="160" cy="140" r="5" fill={c.accent} opacity="0.7" />
+          {/* Dielectric label */}
+          <text x="220" y="125" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">Dielectric</text>
+          <text x="220" y="135" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">fluid gap</text>
+          {/* Labels */}
+          <text x="160" y="40" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.85">EDM · 80V DISCHARGE</text>
+          <text x="160" y="210" textAnchor="middle" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">Gap: 0.03mm · Deionized water dielectric</text>
+          <text x="160" y="82" textAnchor="middle" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">TOOL ELECTRODE (–)</text>
+          <text x="160" y="168" textAnchor="middle" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">WORKPIECE (+)</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "metrology") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="CMM metrology scan diagram">
+          {/* Part profile */}
+          <path d="M60,160 L60,100 Q60,80 80,80 L150,80 L150,100 L240,100 L240,160 Z" fill="rgba(90,98,100,0.2)" stroke="rgba(90,98,100,0.5)" strokeWidth="1.5" />
+          {/* Laser scanner arm */}
+          <rect x="140" y="25" width="8" height="55" rx="2" fill="rgba(47,139,95,0.3)" stroke={c.accent} strokeWidth="1.2" />
+          {/* Laser beam */}
+          <line x1="144" y1="80" x2="144" y2="100" stroke={c.accent} strokeWidth="2" opacity="0.9" strokeLinecap="round" />
+          {/* Scan points */}
+          {[80,100,120,144,170,200,240].map((x, i) => (
+            <circle key={i} cx={x} cy={i < 4 ? (i < 2 ? 80 : 80) : 100} r="2.5" fill={c.accent} opacity="0.7" />
+          ))}
+          {/* CMM readout */}
+          <rect x="200" y="25" width="100" height="70" rx="4" fill="rgba(17,24,32,0.8)" stroke={c.accent} strokeWidth="0.8" />
+          <text x="250" y="40" textAnchor="middle" fontSize="7" fill={c.accent} fontFamily="monospace" opacity="0.8">CMM READOUT</text>
+          <text x="210" y="55" fontSize="7" fill={c.accent} fontFamily="monospace">X: 144.502mm</text>
+          <text x="210" y="68" fontSize="7" fill={c.accent} fontFamily="monospace">Y:  80.003mm</text>
+          <text x="210" y="81" fontSize="7" fill={c.accent} fontFamily="monospace">DEV: +0.003</text>
+          <text x="210" y="88" fontSize="7" fill={c.accent} fontFamily="monospace" opacity="0.7">✓ WITHIN TOL</text>
+          {/* Tolerance zone */}
+          <rect x="60" y="77" width="240" height="6" rx="1" fill="none" stroke={c.accent} strokeWidth="0.8" strokeDasharray="4,3" opacity="0.4" />
+          <text x="160" y="200" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.7">Surface Profile Tolerance: 0.05mm</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "welding") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="TIG welding diagram">
+          {/* Base plates */}
+          <rect x="40" y="110" width="105" height="60" rx="2" fill="rgba(90,98,100,0.25)" stroke="rgba(90,98,100,0.5)" strokeWidth="1.5" />
+          <rect x="175" y="110" width="105" height="60" rx="2" fill="rgba(90,98,100,0.25)" stroke="rgba(90,98,100,0.5)" strokeWidth="1.5" />
+          {/* HAZ zones */}
+          <rect x="125" y="110" width="25" height="60" rx="1" fill={`rgba(185,104,46,0.2)`} stroke="var(--forge-amber)" strokeWidth="0.8" opacity="0.6" />
+          <rect x="170" y="110" width="20" height="60" rx="1" fill={`rgba(185,104,46,0.2)`} stroke="var(--forge-amber)" strokeWidth="0.8" opacity="0.6" />
+          {/* Weld bead */}
+          <ellipse cx="160" cy="110" rx="20" ry="8" fill={c.accent} opacity="0.4" />
+          <ellipse cx="160" cy="110" rx="20" ry="8" fill="none" stroke={c.accent} strokeWidth="1.5" />
+          {/* TIG torch */}
+          <polygon points="152,45 168,45 164,80 156,80" fill="rgba(90,98,100,0.4)" stroke={c.accent} strokeWidth="1.5" />
+          <line x1="160" y1="80" x2="160" y2="110" stroke="white" strokeWidth="2" opacity="0.85" strokeLinecap="round" />
+          {/* Shielding gas zone */}
+          <ellipse cx="160" cy="95" rx="28" ry="18" fill="none" stroke={c.accent} strokeWidth="0.8" strokeDasharray="4,3" opacity="0.4" />
+          {/* Labels */}
+          <text x="160" y="28" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.85">TIG WELDING — 110A / Ar 100%</text>
+          <text x="145" y="107" fontSize="7" fill="var(--forge-amber)" fontFamily="monospace" opacity="0.9">HAZ</text>
+          <text x="160" y="200" textAnchor="middle" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">Heat Input: 1.2 kJ/mm</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "composite") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="Composite layup diagram">
+          {/* Mold */}
+          <path d="M50,185 L270,185 L270,180 L50,180 Z" fill="rgba(90,98,100,0.3)" stroke="rgba(90,98,100,0.5)" strokeWidth="1" />
+          {/* Composite plies */}
+          {[
+            { y: 140, label: "[90°]", color: "rgba(208,90,30,0.25)" },
+            { y: 153, label: "[45°]", color: "rgba(47,139,95,0.2)" },
+            { y: 166, label: "[0°]",  color: "rgba(23,111,134,0.25)" },
+            { y: 179, label: "[-45°]", color: "rgba(185,104,46,0.2)" },
+          ].map((ply) => (
+            <g key={ply.y}>
+              <rect x="70" y={ply.y} width="180" height="11" fill={ply.color} stroke={c.accent} strokeWidth="1" />
+              <text x="260" y={ply.y + 9} fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.8">{ply.label}</text>
+            </g>
+          ))}
+          {/* Vacuum bag (dashed) */}
+          <rect x="55" y="134" width="210" height="52" rx="3" fill="none" stroke="var(--laser-green)" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
+          <text x="272" y="162" fontSize="7" fill="var(--laser-green)" fontFamily="monospace" opacity="0.8">Vac</text>
+          <text x="272" y="171" fontSize="7" fill="var(--laser-green)" fontFamily="monospace" opacity="0.8">bag</text>
+          {/* Labels */}
+          <text x="160" y="120" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.85">VARTM LAYUP — [0/45/90/-45]s</text>
+          <text x="160" y="200" textAnchor="middle" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">Autoclave: 135°C @ 6 bar · Vf = 0.60</text>
+          {/* Resin arrow */}
+          <path d="M40,158 L65,158" fill="none" stroke={c.accent} strokeWidth="1.5" markerEnd="url(#arr)" opacity="0.6" />
+          <text x="12" y="162" fontSize="7" fill={c.accent} fontFamily="monospace" opacity="0.7">Resin</text>
+          <text x="12" y="171" fontSize="7" fill={c.accent} fontFamily="monospace" opacity="0.7">flow</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "fem") {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="FEM mesh diagram">
+          {/* FEM mesh grid — 5×4 elements */}
+          {[0,1,2,3,4].map(col =>
+            [0,1,2,3].map(row => {
+              const x = 60 + col * 45;
+              const y = 50 + row * 38;
+              const stressVal = (col + row) / 7;
+              const r = Math.floor(21 + (200 - 21) * stressVal);
+              const g = Math.floor(100 + (30 - 100) * stressVal);
+              const b = Math.floor(190 + (68 - 190) * stressVal);
+              return (
+                <rect key={`${col}-${row}`} x={x} y={y} width="44" height="37"
+                  fill={`rgba(${r},${g},${b},0.25)`}
+                  stroke={`rgba(${r},${g},${b},0.7)`}
+                  strokeWidth="1"
+                />
+              );
+            })
+          )}
+          {/* Fixed boundary (left) */}
+          {[50,88,126,164].map(y => (
+            <g key={y}>
+              <line x1="50" y1={y} x2="60" y2={y+18} stroke="rgba(90,98,100,0.5)" strokeWidth="1.5" />
+              <line x1="50" y1={y} x2="60" y2={y-0} stroke="rgba(90,98,100,0.5)" strokeWidth="1.5" />
+            </g>
+          ))}
+          <line x1="50" y1="50" x2="50" y2="202" stroke="rgba(90,98,100,0.7)" strokeWidth="2.5" />
+          {/* Force arrows (right) */}
+          <line x1="280" y1="120" x2="265" y2="120" stroke="var(--stress-red)" strokeWidth="2.5" markerEnd="url(#arr-red)" />
+          <text x="283" y="123" fontSize="8" fill="var(--stress-red)" fontFamily="monospace">F</text>
+          {/* Labels */}
+          <text x="160" y="30" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.85">FEM MESH — QUAD4 ELEMENTS</text>
+          <text x="160" y="205" textAnchor="middle" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">Von Mises Stress field · [K]{'{u}'} = {'{F}'}</text>
+          {/* Color legend */}
+          <defs>
+            <linearGradient id="stress-legend" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="rgb(21,101,192)" />
+              <stop offset="100%" stopColor="rgb(200,30,68)" />
+            </linearGradient>
+          </defs>
+          <rect x="200" y="40" width="100" height="10" rx="2" fill="url(#stress-legend)" opacity="0.8" />
+          <text x="200" y="60" fontSize="7" fill="rgb(21,101,192)" fontFamily="monospace">Low</text>
+          <text x="275" y="60" fontSize="7" fill="rgb(200,30,68)" fontFamily="monospace">High</text>
+        </svg>
+      </div>
+    );
+  }
+
+  // materials — crystal lattice
+  return (
+    <div className="relative h-full w-full flex items-center justify-center">
+      <svg viewBox="0 0 320 220" className="w-full max-w-sm" aria-label="Crystal lattice diagram">
+        {/* HCP lattice schematic */}
+        {/* Hexagonal base */}
+        <polygon points="160,80 200,100 200,140 160,160 120,140 120,100" fill="none" stroke={c.accent} strokeWidth="1.5" opacity="0.7" />
+        {/* Top hexagon */}
+        <polygon points="160,30 200,50 200,90 160,110 120,90 120,50" fill="none" stroke={c.accent} strokeWidth="1.2" strokeDasharray="5,3" opacity="0.5" />
+        {/* Vertical struts */}
+        <line x1="160" y1="80" x2="160" y2="30" stroke={c.accent} strokeWidth="1" opacity="0.5" />
+        <line x1="200" y1="100" x2="200" y2="50" stroke={c.accent} strokeWidth="1" opacity="0.5" />
+        <line x1="120" y1="100" x2="120" y2="50" stroke={c.accent} strokeWidth="1" opacity="0.5" />
+        <line x1="160" y1="160" x2="160" y2="110" stroke={c.accent} strokeWidth="1" opacity="0.5" />
+        <line x1="200" y1="140" x2="200" y2="90" stroke={c.accent} strokeWidth="1" opacity="0.5" />
+        <line x1="120" y1="140" x2="120" y2="90" stroke={c.accent} strokeWidth="1" opacity="0.5" />
+        {/* Atoms */}
+        {[
+          [160,80],[200,100],[200,140],[160,160],[120,140],[120,100],
+          [160,30],[200,50],[200,90],[160,110],[120,90],[120,50],
+        ].map(([x,y], i) => (
+          <circle key={i} cx={x} cy={y} r={i < 6 ? 6 : 5} fill={c.accent} opacity={i < 6 ? 0.8 : 0.5} />
+        ))}
+        {/* Center interstitial atom */}
+        <circle cx="160" cy="120" r="4" fill="var(--forge-amber)" opacity="0.7" />
+        {/* Labels */}
+        <text x="160" y="15" textAnchor="middle" fontSize="9" fill={c.accent} fontFamily="monospace" opacity="0.85">Ti-6Al-4V · HCP CRYSTAL (α-phase)</text>
+        <text x="160" y="200" textAnchor="middle" fontSize="8" fill={c.accent} fontFamily="monospace" opacity="0.7">a=2.95Å · c/a=1.587 · Grain size: ASTM 8</text>
+        <text x="170" y="122" fontSize="7" fill="var(--forge-amber)" fontFamily="monospace" opacity="0.8">O (interstitial)</text>
+      </svg>
+    </div>
+  );
+}
+
 export function InteractiveWorkbench() {
   const [activeTopic, setActiveTopic] = useState<CourseTopic>(topics[0]);
-  const { getVideoPath, getPhotoPath } = useAssets();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const interactiveStateRef = useRef<Record<string, any>>({});
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  // Check if dynamic user assets are available
-  const userVideo = getVideoPath(`${activeTopic.id}.mp4`) || getVideoPath(`${activeTopic.id}.webm`);
-  const userPhoto = getPhotoPath(`${activeTopic.id}.jpg`) || getPhotoPath(`${activeTopic.id}.png`);
-
-  // Handle Interactive Simulator Loops
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animationId: number;
-    let particles: WorkbenchParticle[] = [];
-    let frame = 0;
-
-    // Resize canvas to container
-    const resizeCanvas = () => {
-      const rect = canvas.parentElement?.getBoundingClientRect();
-      canvas.width = rect?.width || 500;
-      canvas.height = rect?.height || 350;
-    };
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    // Setup Topic-Specific Initial State
-    if (activeTopic.id === "cad") {
-      interactiveStateRef.current = { rotationX: 0.5, rotationY: 0.5, zoom: 1 };
-    } else if (activeTopic.id === "cam") {
-      interactiveStateRef.current = { toolX: 50, toolY: 50, path: [] };
-    } else if (activeTopic.id === "additive") {
-      interactiveStateRef.current = { printHeight: 0, pathIndex: 0 };
-    } else if (activeTopic.id === "subtractive") {
-      interactiveStateRef.current = { cutterX: 50, cutting: false, shards: [] };
-    } else if (activeTopic.id === "nonconventional") {
-      interactiveStateRef.current = { dischargeX: 50, active: false };
-    } else if (activeTopic.id === "metrology") {
-      interactiveStateRef.current = { laserX: 0, scanPoints: [] };
-    } else if (activeTopic.id === "welding") {
-      interactiveStateRef.current = { torchX: 50, torchY: 50, weldLine: [] };
-    } else if (activeTopic.id === "composite") {
-      interactiveStateRef.current = { layers: 1 };
-    } else if (activeTopic.id === "fem") {
-      interactiveStateRef.current = { forceX: 0, forceY: 0, load: 10 };
-    } else if (activeTopic.id === "materials") {
-      interactiveStateRef.current = { temp: 300 };
-    }
-
-    // Interactive Loop
-    const draw = () => {
-      frame++;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const w = canvas.width;
-      const h = canvas.height;
-
-      // Draw a grid in the background (machined workshop surface)
-      ctx.strokeStyle = "rgba(184, 196, 208, 0.03)";
-      ctx.lineWidth = 1;
-      const gridSize = 30;
-      for (let x = 0; x < w; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
-      }
-      for (let y = 0; y < h; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-      }
-
-      // RENDER FALLBACK SIMULATION BASED ON ACTIVE TOPIC
-      if (activeTopic.id === "cad") {
-        // CAD Simulated Parametric Mesh Rotation
-        ctx.save();
-        ctx.translate(w / 2, h / 2);
-        
-        // Draw 3D wireframe box
-        const size = 100;
-        const angleX = (frame * 0.005) + (interactiveStateRef.current.rotationX || 0);
-        const angleY = (frame * 0.008) + (interactiveStateRef.current.rotationY || 0);
-
-        const project = (x: number, y: number, z: number) => {
-          // Rotate around X
-          const y1 = y * Math.cos(angleX) - z * Math.sin(angleX);
-          const z1 = y * Math.sin(angleX) + z * Math.cos(angleX);
-          // Rotate around Y
-          const x2 = x * Math.cos(angleY) + z1 * Math.sin(angleY);
-          // Perspective
-          const d = 300;
-          const factor = d / (d + z1);
-          return { x: x2 * factor, y: y1 * factor };
-        };
-
-        const vertices = [
-          [-size, -size, -size], [size, -size, -size], [size, size, -size], [-size, size, -size],
-          [-size, -size, size], [size, -size, size], [size, size, size], [-size, size, size]
-        ];
-
-        const edges = [
-          [0, 1], [1, 2], [2, 3], [3, 0], // Back face
-          [4, 5], [5, 6], [6, 7], [7, 4], // Front face
-          [0, 4], [1, 5], [2, 6], [3, 7]  // Connectors
-        ];
-
-        // Draw edges
-        ctx.strokeStyle = "rgba(46, 140, 255, 0.4)";
-        ctx.lineWidth = 1.5;
-        edges.forEach(([u, v]) => {
-          const p1 = project(vertices[u][0], vertices[u][1], vertices[u][2]);
-          const p2 = project(vertices[v][0], vertices[v][1], vertices[v][2]);
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.stroke();
-        });
-
-        // Draw vertices as dimensions callout bubbles
-        ctx.fillStyle = "var(--laser-green)";
-        vertices.forEach((v, idx) => {
-          if (idx === 1 || idx === 6) {
-            const pt = project(v[0], v[1], v[2]);
-            ctx.beginPath();
-            ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Text callout
-            ctx.strokeStyle = "rgba(0, 230, 118, 0.3)";
-            ctx.beginPath();
-            ctx.moveTo(pt.x, pt.y);
-            ctx.lineTo(pt.x + 30, pt.y - 20);
-            ctx.stroke();
-            ctx.fillStyle = "rgba(0, 230, 118, 0.85)";
-            ctx.font = "9px monospace";
-            ctx.fillText(`L${idx}: ${((v[0] + size) * (1 + Math.sin(frame * 0.01) * 0.05)).toFixed(1)}mm`, pt.x + 35, pt.y - 18);
-          }
-        });
-
-        ctx.restore();
-
-        // Control prompt
-        ctx.fillStyle = "rgba(184, 196, 208, 0.4)";
-        ctx.font = "10px monospace";
-        ctx.fillText("Interactive Parametric CAD Simulation (Drag or Move Mouse to rotate)", 15, h - 15);
-
-      } else if (activeTopic.id === "cam") {
-        // CAM CNC cutting path tracing
-        const radius = 60;
-        const centerX = w / 2;
-        const centerY = h / 2;
-        
-        // Target path
-        ctx.strokeStyle = "rgba(232, 135, 43, 0.25)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Cut path drawn
-        const progress = (frame % 200) / 200;
-        const currentAngle = progress * Math.PI * 2;
-        ctx.strokeStyle = "var(--forge-amber)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, currentAngle);
-        ctx.stroke();
-
-        // Active spindle tool
-        const spindleX = centerX + Math.cos(currentAngle) * radius;
-        const spindleY = centerY + Math.sin(currentAngle) * radius;
-
-        // Spark emitter at tool contact
-        if (Math.random() > 0.4) {
-          particles.push({
-            x: spindleX,
-            y: spindleY,
-            vx: (Math.random() - 0.5) * 4 + Math.cos(currentAngle + Math.PI/2) * 2,
-            vy: (Math.random() - 0.5) * 4 + Math.sin(currentAngle + Math.PI/2) * 2,
-            age: 0,
-            maxAge: 25 + Math.random() * 20,
-          });
-        }
-
-        // Draw Spindle
-        ctx.fillStyle = "#1E2A35";
-        ctx.strokeStyle = "var(--titanium)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(spindleX - 10, spindleY - 40);
-        ctx.lineTo(spindleX + 10, spindleY - 40);
-        ctx.lineTo(spindleX + 4, spindleY - 5);
-        ctx.lineTo(spindleX, spindleY);
-        ctx.lineTo(spindleX - 4, spindleY - 5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Spindle spin effect lines
-        ctx.strokeStyle = "rgba(232, 135, 43, 0.4)";
-        ctx.beginPath();
-        ctx.arc(spindleX, spindleY - 20, 15, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // CNC HUD overlay
-        ctx.fillStyle = "var(--forge-amber)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`CNC SPINDLE ACTIVE`, 20, 30);
-        ctx.fillText(`FEEDRATE: F1200 mm/min`, 20, 45);
-        ctx.fillText(`RPM: 18000 (S)`, 20, 60);
-        ctx.fillText(`G-CODE: G02 X${spindleX.toFixed(1)} Y${spindleY.toFixed(1)} R${radius}`, 20, 75);
-
-      } else if (activeTopic.id === "additive") {
-        // Additive Layer deposition
-        const printW = 160;
-        const startY = h - 60;
-        const currentLayer = Math.floor(frame / 60) % 8;
-        const layerProgress = (frame % 60) / 60;
-
-        // Draw printed base/bed
-        ctx.fillStyle = "#14181E";
-        ctx.fillRect(w/2 - printW/2 - 20, startY, printW + 40, 10);
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.2)";
-        ctx.strokeRect(w/2 - printW/2 - 20, startY, printW + 40, 10);
-
-        // Render fully solid layers
-        ctx.fillStyle = "rgba(0, 230, 118, 0.25)";
-        ctx.strokeStyle = "var(--laser-green)";
-        ctx.lineWidth = 1.5;
-        for (let i = 0; i < currentLayer; i++) {
-          const ly = startY - (i + 1) * 8;
-          ctx.fillRect(w/2 - printW/2, ly, printW, 7);
-          ctx.strokeRect(w/2 - printW/2, ly, printW, 7);
-        }
-
-        // Active layer printing
-        const activeY = startY - (currentLayer + 1) * 8;
-        const currentPrintWidth = printW * layerProgress;
-        ctx.fillStyle = "rgba(0, 230, 118, 0.4)";
-        ctx.fillRect(w/2 - printW/2, activeY, currentPrintWidth, 7);
-        ctx.strokeRect(w/2 - printW/2, activeY, currentPrintWidth, 7);
-
-        // Printing Head (Nozzle)
-        const nozzleX = w/2 - printW/2 + currentPrintWidth;
-        const nozzleY = activeY - 5;
-
-        // Melted green extrusion glow
-        ctx.fillStyle = "var(--laser-green)";
-        ctx.beginPath();
-        ctx.arc(nozzleX, nozzleY + 5, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Laser/Heat beam to powder bed
-        ctx.strokeStyle = "rgba(0, 230, 118, 0.6)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(nozzleX, nozzleY - 15);
-        ctx.lineTo(nozzleX, nozzleY + 5);
-        ctx.stroke();
-
-        // Extruder Block
-        ctx.fillStyle = "#1E2A35";
-        ctx.strokeStyle = "var(--titanium)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(nozzleX - 15, nozzleY - 25);
-        ctx.lineTo(nozzleX + 15, nozzleY - 25);
-        ctx.lineTo(nozzleX + 5, nozzleY - 5);
-        ctx.lineTo(nozzleX - 5, nozzleY - 5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Powder sparks/smoke particles
-        if (Math.random() > 0.6) {
-          particles.push({
-            x: nozzleX,
-            y: nozzleY + 5,
-            vx: (Math.random() - 0.5) * 1.5,
-            vy: -Math.random() * 2,
-            age: 0,
-            maxAge: 20 + Math.random() * 10,
-          });
-        }
-
-        // HUD overlay
-        ctx.fillStyle = "var(--laser-green)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`3D PRINT BUILD CHAMBER`, 20, 30);
-        ctx.fillText(`LAYER: ${currentLayer + 1} / 8`, 20, 45);
-        ctx.fillText(`NOZZLE TEMP: 245°C`, 20, 60);
-        ctx.fillText(`DEPOSITION SPEED: 80 mm/s`, 20, 75);
-
-      } else if (activeTopic.id === "subtractive") {
-        // Subtractive Milling Cutter
-        const blockW = 180;
-        const blockH = 60;
-        const startX = w/2 - blockW/2;
-        const startY = h/2 - blockH/2 + 20;
-
-        // Draw original metal workpiece outline
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.15)";
-        ctx.setLineDash([4, 4]);
-        ctx.strokeRect(startX, startY - 20, blockW, blockH + 20);
-        ctx.setLineDash([]);
-
-        // Cut path profile
-        const cutterProgress = (frame % 220) / 220;
-        const activeX = startX + blockW * cutterProgress;
-
-        // Draw milled workpiece (with step cutout)
-        ctx.fillStyle = "#1E2A35";
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.4)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        // Left side uncut
-        ctx.moveTo(startX, startY + blockH);
-        ctx.lineTo(startX, startY);
-        // Cut profile
-        ctx.lineTo(activeX, startY);
-        ctx.lineTo(activeX, startY + 20);
-        ctx.lineTo(startX + blockW, startY + 20);
-        // Right side
-        ctx.lineTo(startX + blockW, startY + blockH);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Milling spindle cutter head
-        const cutY = startY + 10;
-        ctx.fillStyle = "rgba(232, 135, 43, 0.1)";
-        ctx.strokeStyle = "var(--forge-amber)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(activeX, cutY, 18, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Draw tool bit
-        ctx.fillStyle = "#14181E";
-        ctx.strokeStyle = "var(--titanium)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(activeX - 6, cutY - 30);
-        ctx.lineTo(activeX + 6, cutY - 30);
-        ctx.lineTo(activeX + 6, cutY);
-        ctx.lineTo(activeX - 6, cutY);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Shard particle emitter
-        if (cutterProgress < 1.0) {
-          if (Math.random() > 0.3) {
-            particles.push({
-              x: activeX,
-              y: cutY,
-              vx: (Math.random() - 0.2) * 5,
-              vy: -Math.random() * 4 - 2,
-              age: 0,
-              maxAge: 30 + Math.random() * 20,
-              type: "metal_chip"
-            });
-          }
-        }
-
-        // HUD overlay
-        ctx.fillStyle = "var(--forge-amber)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`SUBTRACTIVE MACHINING`, 20, 30);
-        ctx.fillText(`DEPTH OF CUT (ap): 2.0 mm`, 20, 45);
-        ctx.fillText(`SPINDLE ACTIVE: S6000 RPM`, 20, 60);
-
-      } else if (activeTopic.id === "nonconventional") {
-        // EDM Electrical Discharge Machining
-        const gap = 12;
-        const active = frame % 30 < 22; // Spark cycles
-        const sparkCount = active ? Math.floor(Math.random() * 3) + 1 : 0;
-        const workW = 200;
-        const workH = 50;
-        const workX = w/2 - workW/2;
-        const workY = h/2 + 25;
-
-        // Workpiece
-        ctx.fillStyle = "#111820";
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.3)";
-        ctx.lineWidth = 2;
-        ctx.fillRect(workX, workY, workW, workH);
-        ctx.strokeRect(workX, workY, workW, workH);
-
-        // Tool Electrode
-        const toolW = 60;
-        const toolH = 50;
-        const toolX = w/2 - toolW/2;
-        const toolY = workY - gap - toolH;
-
-        ctx.fillStyle = "rgba(46, 140, 255, 0.15)";
-        ctx.strokeStyle = "var(--arc-blue)";
-        ctx.fillRect(toolX, toolY, toolW, toolH);
-        ctx.strokeRect(toolX, toolY, toolW, toolH);
-
-        // Spark discharge in the gap
-        if (active) {
-          ctx.strokeStyle = "#FFFFFF";
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = "var(--arc-blue)";
-          ctx.shadowBlur = 15;
-
-          for (let s = 0; s < sparkCount; s++) {
-            const sx = toolX + 10 + Math.random() * (toolW - 20);
-            ctx.beginPath();
-            ctx.moveTo(sx, toolY + toolH);
-            
-            // Jagged spark line
-            let cy = toolY + toolH;
-            let cx = sx;
-            while (cy < workY) {
-              cy += 3;
-              cx += (Math.random() - 0.5) * 6;
-              ctx.lineTo(cx, cy);
-            }
-            ctx.stroke();
-
-            // Bubble explosion at spark endpoint
-            ctx.fillStyle = "rgba(46, 140, 255, 0.8)";
-            ctx.beginPath();
-            ctx.arc(cx, workY, 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            if (Math.random() > 0.4) {
-              particles.push({
-                x: cx,
-                y: workY,
-                vx: (Math.random() - 0.5) * 3,
-                vy: -Math.random() * 3,
-                age: 0,
-                maxAge: 15,
-                color: "var(--arc-blue)"
-              });
-            }
-          }
-          // Reset shadow
-          ctx.shadowBlur = 0;
-        }
-
-        // HUD overlay
-        ctx.fillStyle = "var(--arc-blue)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`EDM SPARK DISCHARGE`, 20, 30);
-        ctx.fillText(`DIELECTRIC: Deionized Water`, 20, 45);
-        ctx.fillText(`VOLTAGE: 80V PULSED`, 20, 60);
-
-      } else if (activeTopic.id === "metrology") {
-        // Laser Inspection sweep
-        const startX = w/2 - 120;
-        const endX = w/2 + 120;
-        const laserSpeed = 0.015;
-        const progress = (frame * laserSpeed) % 2;
-        const currentX = progress < 1 
-          ? startX + (endX - startX) * progress
-          : endX - (endX - startX) * (progress - 1);
-
-        // Draw part profile grid
-        ctx.strokeStyle = "rgba(0, 230, 118, 0.1)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let ix = startX; ix <= endX; ix += 20) {
-          const hOffset = Math.sin((ix - w/2) * 0.05) * 20 + 30;
-          ctx.moveTo(ix, h/2 - hOffset);
-          ctx.lineTo(ix, h/2 + 50);
-        }
-        ctx.stroke();
-
-        // Draw tested component envelope
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.3)";
-        ctx.fillStyle = "rgba(30, 42, 53, 0.3)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(startX, h/2 + 50);
-        for (let ix = startX; ix <= endX; ix += 10) {
-          const hOffset = Math.sin((ix - w/2) * 0.05) * 20 + 30;
-          ctx.lineTo(ix, h/2 - hOffset);
-        }
-        ctx.lineTo(endX, h/2 + 50);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Green scanning laser line
-        const activeYOffset = Math.sin((currentX - w/2) * 0.05) * 20 + 30;
-        const laserContactY = h/2 - activeYOffset;
-
-        ctx.strokeStyle = "var(--laser-green)";
-        ctx.lineWidth = 2;
-        ctx.shadowColor = "var(--laser-green)";
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.moveTo(currentX, 20);
-        ctx.lineTo(currentX, laserContactY);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // Laser reflection dot
-        ctx.fillStyle = "#FFFFFF";
-        ctx.beginPath();
-        ctx.arc(currentX, laserContactY, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Metrology CMM readout box
-        ctx.fillStyle = "rgba(17, 24, 32, 0.85)";
-        ctx.strokeStyle = "var(--laser-green)";
-        ctx.lineWidth = 1;
-        ctx.fillRect(w - 150, 20, 130, 80);
-        ctx.strokeRect(w - 150, 20, 130, 80);
-
-        ctx.fillStyle = "var(--laser-green)";
-        ctx.font = "8px monospace";
-        ctx.fillText(`CMM SCANNER DATA`, w - 140, 35);
-        ctx.fillText(`X: ${currentX.toFixed(3)} mm`, w - 140, 50);
-        ctx.fillText(`Y: ${laserContactY.toFixed(3)} mm`, w - 140, 62);
-        ctx.fillText(`Z: 14.502 mm`, w - 140, 74);
-        ctx.fillText(`DEV: +0.002 mm (OK)`, w - 140, 86);
-
-      } else if (activeTopic.id === "welding") {
-        // TIG Welding sparks and heat seam
-        const startX = w/2 - 100;
-        const endX = w/2 + 100;
-        const weldY = h/2 + 10;
-        const progress = (frame % 200) / 200;
-        const currentX = startX + (endX - startX) * progress;
-
-        // Base plates to join
-        ctx.fillStyle = "#1E2A35";
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.4)";
-        ctx.lineWidth = 1.5;
-        // Plate 1
-        ctx.fillRect(startX - 20, weldY - 30, 115, 60);
-        ctx.strokeRect(startX - 20, weldY - 30, 115, 60);
-        // Plate 2
-        ctx.fillRect(startX + 105, weldY - 30, 115, 60);
-        ctx.strokeRect(startX + 105, weldY - 30, 115, 60);
-
-        // Heat zone (red/amber heat map expanding)
-        ctx.strokeStyle = "rgba(232, 135, 43, 0.35)";
-        ctx.lineWidth = 10;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(startX, weldY);
-        ctx.lineTo(currentX, weldY);
-        ctx.stroke();
-
-        // Melted weld bead
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.8)";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(startX, weldY);
-        ctx.lineTo(currentX, weldY);
-        ctx.stroke();
-        ctx.lineCap = "butt";
-
-        // Active torch flame and electrode
-        if (progress < 1.0) {
-          ctx.strokeStyle = "#FFFFFF";
-          ctx.shadowColor = "var(--arc-blue)";
-          ctx.shadowBlur = 15;
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(currentX, weldY - 20);
-          ctx.lineTo(currentX, weldY);
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-
-          // Torch head
-          ctx.fillStyle = "#14181E";
-          ctx.strokeStyle = "var(--titanium)";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(currentX - 8, weldY - 45);
-          ctx.lineTo(currentX + 8, weldY - 45);
-          ctx.lineTo(currentX + 3, weldY - 20);
-          ctx.lineTo(currentX - 3, weldY - 20);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          // Welding sparks
-          if (Math.random() > 0.2) {
-            particles.push({
-              x: currentX,
-              y: weldY,
-              vx: (Math.random() - 0.5) * 6,
-              vy: -Math.random() * 5 - 1,
-              age: 0,
-              maxAge: 25 + Math.random() * 15,
-              color: Math.random() > 0.4 ? "var(--arc-blue)" : "var(--forge-amber)"
-            });
-          }
-        }
-
-        // HUD overlay
-        ctx.fillStyle = "var(--arc-blue)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`TIG WELD DETECTED`, 20, 30);
-        ctx.fillText(`AMPERAGE: 110 A`, 20, 45);
-        ctx.fillText(`SHIELDING GAS: Ar 100%`, 20, 60);
-
-      } else if (activeTopic.id === "composite") {
-        // Composite laminate ply stacking
-        const startX = w/2 - 80;
-        const startY = h/2 - 60;
-        const plyW = 160;
-        const plyH = 12;
-
-        const maxLayers = 4;
-        const currentMax = Math.floor(frame / 60) % maxLayers + 1;
-
-        // Draw structural mold
-        ctx.fillStyle = "#0A0E17";
-        ctx.strokeStyle = "rgba(184, 196, 208, 0.2)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(startX - 20, startY + maxLayers * 15 + 15);
-        ctx.lineTo(startX + plyW + 20, startY + maxLayers * 15 + 15);
-        ctx.stroke();
-
-        // Render carbon fiber plies
-        for (let l = 0; l < currentMax; l++) {
-          const ly = startY + l * 15;
-          
-          // Outer carbon fiber weave look
-          ctx.fillStyle = "rgba(20, 24, 30, 0.9)";
-          ctx.strokeStyle = l === currentMax - 1 ? "var(--forge-amber)" : "rgba(184, 196, 208, 0.25)";
-          ctx.lineWidth = 1.5;
-          ctx.fillRect(startX, ly, plyW, plyH);
-          ctx.strokeRect(startX, ly, plyW, plyH);
-
-          // Weave fiber grid lines inside card
-          ctx.strokeStyle = "rgba(184, 196, 208, 0.08)";
-          ctx.lineWidth = 1;
-          const fiberSpacing = 8;
-          ctx.beginPath();
-          // Angle shifts per layer (0, 45, 90, -45 degree layup)
-          const angle = l === 0 ? 0 : l === 1 ? 45 : l === 2 ? 90 : -45;
-          if (angle === 0) {
-            for (let f = startX + 5; f < startX + plyW; f += fiberSpacing) {
-              ctx.moveTo(f, ly);
-              ctx.lineTo(f, ly + plyH);
-            }
-          } else if (angle === 90) {
-            for (let f = ly + 2; f < ly + plyH; f += 3) {
-              ctx.moveTo(startX, f);
-              ctx.lineTo(startX + plyW, f);
-            }
-          } else {
-            // Draw diagonal crosses
-            for (let f = startX - 10; f < startX + plyW; f += fiberSpacing) {
-              ctx.moveTo(f, ly);
-              ctx.lineTo(f + 15, ly + plyH);
-            }
-          }
-          ctx.stroke();
-
-          // Label angle tag
-          ctx.fillStyle = l === currentMax - 1 ? "var(--forge-amber)" : "rgba(184, 196, 208, 0.4)";
-          ctx.font = "8px monospace";
-          ctx.fillText(`Ply ${l+1}: [${angle}°]`, startX + plyW + 10, ly + 9);
-        }
-
-        // HUD overlay
-        ctx.fillStyle = "var(--forge-amber)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`CARBON COMPOSITE LAYUP`, 20, 30);
-        ctx.fillText(`ORIENTATION: [0/45/90/-45]s`, 20, 45);
-        ctx.fillText(`LAMINATE THICKNESS: ${(currentMax * 0.125).toFixed(3)} mm`, 20, 60);
-
-      } else if (activeTopic.id === "fem") {
-        // FEM structural deformation mesh
-        const centerX = w/2;
-        const centerY = h/2;
-        const meshSize = 5;
-        const spacing = 30;
-
-        const maxForce = 25;
-        const currentForce = Math.sin(frame * 0.05) * maxForce; // Pulsing force
-
-        ctx.save();
-        ctx.translate(centerX - (meshSize - 1) * spacing / 2, centerY - (meshSize - 1) * spacing / 2);
-
-        // Nodes coordinates deformed by force
-        const getDeformedCoords = (col: number, row: number) => {
-          const originalX = col * spacing;
-          const originalY = row * spacing;
-
-          // Apply displacement towards bottom-right based on force and proximity
-          const distToTopLeft = Math.sqrt(col * col + row * row);
-          const displacementFactor = distToTopLeft / (meshSize * 1.5);
-          
-          const dx = currentForce * displacementFactor * 0.8;
-          const dy = currentForce * displacementFactor * 0.9;
-
-          return { x: originalX + dx, y: originalY + dy, displacement: distToTopLeft * Math.abs(currentForce) };
-        };
-
-        // Draw deformed mesh cells with Heatmap fills
-        for (let r = 0; r < meshSize - 1; r++) {
-          for (let c = 0; c < meshSize - 1; c++) {
-            const p00 = getDeformedCoords(c, r);
-            const p10 = getDeformedCoords(c + 1, r);
-            const p11 = getDeformedCoords(c + 1, r + 1);
-            const p01 = getDeformedCoords(c, r + 1);
-
-            // Average displacement determines cell stress color
-            const avgDisp = (p00.displacement + p10.displacement + p11.displacement + p01.displacement) / 4;
-            const stressRatio = Math.min(avgDisp / 80, 1);
-
-            // Interpolate color from Low stress (blue) to High stress (red)
-            // Low: rgb(21, 101, 192), High: rgb(255, 23, 68)
-            const red = Math.floor(21 + (255 - 21) * stressRatio);
-            const green = Math.floor(101 + (23 - 101) * stressRatio);
-            const blue = Math.floor(192 + (68 - 192) * stressRatio);
-
-            ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, 0.25)`;
-            ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, 0.65)`;
-            ctx.lineWidth = 1;
-
-            ctx.beginPath();
-            ctx.moveTo(p00.x, p00.y);
-            ctx.lineTo(p10.x, p10.y);
-            ctx.lineTo(p11.x, p11.y);
-            ctx.lineTo(p01.x, p01.y);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-          }
-        }
-
-        // Draw force arrow on bottom-right node
-        const pForce = getDeformedCoords(meshSize - 1, meshSize - 1);
-        ctx.strokeStyle = "var(--stress-red)";
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(pForce.x + 30, pForce.y + 30);
-        ctx.lineTo(pForce.x, pForce.y);
-        ctx.stroke();
-        // Arrowhead
-        ctx.fillStyle = "var(--stress-red)";
-        ctx.beginPath();
-        ctx.moveTo(pForce.x, pForce.y);
-        ctx.lineTo(pForce.x + 8, pForce.y + 2);
-        ctx.lineTo(pForce.x + 2, pForce.y + 8);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
-
-        // HUD overlay
-        ctx.fillStyle = "var(--stress-red)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`FEM THERMO-STRUCTURAL SOLVER`, 20, 30);
-        ctx.fillText(`LOAD VECTOR: ${currentForce.toFixed(2)} kN`, 20, 45);
-        ctx.fillText(`MAX VON MISES STRESS: ${(Math.abs(currentForce) * 12.4).toFixed(1)} MPa`, 20, 60);
-
-      } else if (activeTopic.id === "materials") {
-        // Crystalline lattice structure simulation
-        const nodes: { x: number; y: number }[] = [];
-        const numNodes = 12;
-        const centerX = w / 2;
-        const centerY = h / 2;
-        const latticeRadius = 70;
-
-        for (let i = 0; i < numNodes; i++) {
-          const angle = (i / numNodes) * Math.PI * 2 + (frame * 0.004);
-          const orbitalShift = Math.sin(frame * 0.02 + i) * 8;
-          const rad = latticeRadius + orbitalShift;
-          nodes.push({
-            x: centerX + Math.cos(angle) * rad,
-            y: centerY + Math.sin(angle) * rad,
-          });
-        }
-
-        // Connect lattice nodes
-        ctx.strokeStyle = "rgba(0, 230, 118, 0.15)";
-        ctx.lineWidth = 1;
-        for (let i = 0; i < numNodes; i++) {
-          for (let j = i + 1; j < numNodes; j++) {
-            const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
-            // Draw atomic bond if close enough
-            if (dist < 100) {
-              ctx.beginPath();
-              ctx.moveTo(nodes[i].x, nodes[i].y);
-              ctx.lineTo(nodes[j].x, nodes[j].y);
-              ctx.stroke();
-            }
-          }
-        }
-
-        // Draw central core atom
-        ctx.fillStyle = "rgba(46, 140, 255, 0.15)";
-        ctx.strokeStyle = "var(--arc-blue)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 15, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = "var(--arc-blue)";
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw orbital nodes
-        nodes.forEach((n, idx) => {
-          ctx.fillStyle = idx % 3 === 0 ? "var(--laser-green)" : "var(--titanium)";
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        // HUD overlay
-        ctx.fillStyle = "var(--laser-green)";
-        ctx.font = "9px monospace";
-        ctx.fillText(`TITANIUM CRYSTAL LATTICE (HCP)`, 20, 30);
-        ctx.fillText(`DISLOCATION DENSITY: 10^12 m^-2`, 20, 45);
-        ctx.fillText(`GRAIN SIZE: ASTM 8.5`, 20, 60);
-      }
-
-      // Draw active sparks/particles in simulator
-      particles.forEach((p) => {
-        p.age++;
-        p.x += p.vx;
-        p.y += p.vy;
-        
-        // chip particles bounce or spin
-        if (p.type === "metal_chip") {
-          p.vy += 0.25; // Gravity
-        }
-
-        const lifeRatio = 1 - p.age / p.maxAge;
-        ctx.fillStyle = p.color || (activeTopic.id === "additive" 
-          ? `rgba(0, 230, 118, ${lifeRatio})`
-          : activeTopic.id === "cam"
-          ? `rgba(232, 135, 43, ${lifeRatio})`
-          : `rgba(255, 255, 255, ${lifeRatio})`);
-
-        ctx.beginPath();
-        if (p.type === "metal_chip") {
-          // Irregular rectangle shards
-          ctx.rect(p.x, p.y, 3 * lifeRatio, 2 * lifeRatio);
-        } else {
-          ctx.arc(p.x, p.y, 2 * lifeRatio, 0, Math.PI * 2);
-        }
-        ctx.fill();
-      });
-
-      // Clear aged particles
-      particles = particles.filter((p) => p.age < p.maxAge);
-
-      animationId = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resizeCanvas);
-    };
-  }, [activeTopic]);
+  const c = colorMap[activeTopic.color];
 
   return (
-    <div className="mt-12 grid gap-6 lg:grid-cols-[250px_1fr]">
+    <div className="mt-12 grid gap-6 lg:grid-cols-[260px_1fr]">
       {/* Course Sidebar selector */}
-      <div className="flex flex-col gap-2 overflow-y-auto max-h-[550px] scrollbar-none">
+      <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[620px] [scrollbar-width:none] pr-1">
         <SectionLabel color="blue" className="mb-2">Course Modules</SectionLabel>
         {topics.map((topic) => {
           const Icon = topic.icon;
           const isActive = activeTopic.id === topic.id;
+          const tc = colorMap[topic.color];
           return (
             <button
               key={topic.id}
               onClick={() => setActiveTopic(topic)}
               className={[
-                "flex items-center gap-3 w-full rounded-md border p-3.5 text-left transition-all duration-300",
+                "flex items-center gap-3 w-full rounded-lg border p-3 text-left transition-all duration-200 cursor-pointer",
                 isActive
-                  ? "border-[var(--arc-blue)] bg-[var(--arc-blue-dim)] text-white shadow-[var(--shadow-glow-blue)]"
-                  : "border-[var(--edge)] bg-[var(--panel)]/40 text-[var(--ceramic-muted)] hover:border-[var(--edge-hover)] hover:text-white"
+                  ? `border-[${tc.accent}] bg-[${tc.dim}] shadow-sm`
+                  : "border-[var(--edge)] bg-[var(--panel)]/40 text-[var(--ceramic-muted)] hover:border-[var(--edge-hover)] hover:bg-[var(--panel)]"
               ].join(" ")}
+              style={isActive ? { borderColor: tc.accent, background: tc.dim } : {}}
             >
-              <Icon className={[
-                "size-5 shrink-0 transition-transform duration-300",
-                isActive ? "text-[var(--arc-blue)] scale-110" : "text-[var(--ceramic-muted)]"
-              ].join(" ")} />
-              <div>
-                <p className="font-display text-sm font-semibold">{topic.name}</p>
-                <p className="font-mono text-[10px] tracking-wider opacity-60 mt-0.5">{topic.code}</p>
+              <Icon
+              size={16}
+              className={isActive ? tc.text : "text-[var(--ceramic-muted)]"}
+            />
+            <div className="min-w-0">
+                <p className={`font-display text-sm font-semibold truncate ${isActive ? "text-[var(--ceramic)]" : ""}`}>
+                  {topic.name}
+                </p>
+                <p className="font-mono text-[10px] tracking-wider opacity-50 mt-0.5">{topic.code}</p>
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* Media display viewport */}
-      <GlassCard className="flex flex-col h-[550px] overflow-hidden">
-        {/* VIEWPORT HEADER */}
-        <div className="flex flex-wrap items-center justify-between border-b border-[var(--edge)] pb-3">
-          <div>
-            <span className="rounded bg-[var(--arc-blue-dim)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--arc-blue)]">
-              {activeTopic.code}
-            </span>
-            <h2 className="font-display text-xl font-bold text-white mt-1">
-              {activeTopic.name}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block size-2 rounded-full bg-[var(--laser-green)] animate-pulse" />
-            <span className="font-mono text-xs text-[var(--laser-green)]">SIMULATOR ACTIVE</span>
-          </div>
-        </div>
-
-        {/* WORKSPACE AREA */}
-        <div className="relative flex-1 bg-[var(--void-deep)]/90 overflow-hidden">
-          {/* USER ASSETS INTEGRATION VIEWPORT */}
-          {userVideo ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-              <video
-                src={userVideo}
-                className="h-full w-full object-cover"
-                autoPlay
-                loop
-                muted
-                playsInline
-              />
-              <div className="absolute top-3 left-3 bg-black/70 border border-[var(--edge)] px-2.5 py-1 rounded text-xs font-mono text-[var(--arc-blue)]">
-                [LIVE VIDEO FEED: public/media/videos/{activeTopic.id}.mp4]
-              </div>
-            </div>
-          ) : userPhoto ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-              <img
-                src={userPhoto}
-                className="h-full w-full object-cover"
-                alt={activeTopic.name}
-              />
-              <div className="absolute top-3 left-3 bg-black/70 border border-[var(--edge)] px-2.5 py-1 rounded text-xs font-mono text-[var(--arc-blue)]">
-                [LIVE PHOTO LOADED: public/media/photos/{activeTopic.id}.jpg]
-              </div>
-            </div>
-          ) : (
-            // Default gorgeous canvas simulator fallbacks
-            <canvas
-              ref={canvasRef}
-              className="h-full w-full cursor-crosshair"
-              onMouseMove={(e) => {
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const rect = canvas.getBoundingClientRect();
-                const mx = e.clientX - rect.left;
-                const my = e.clientY - rect.top;
-                
-                if (activeTopic.id === "cad") {
-                  interactiveStateRef.current = {
-                    ...interactiveStateRef.current,
-                    rotationX: (my / canvas.height) * Math.PI * 2,
-                    rotationY: (mx / canvas.width) * Math.PI * 2,
-                  };
-                }
-              }}
-            />
-          )}
-
-          {/* Futuristic Overlay HUD labels */}
-          <div className="absolute bottom-4 right-4 z-20 glass rounded p-3 text-[10px] font-mono text-[var(--ceramic-muted)] max-w-[200px]">
-            <p className="font-bold text-white border-b border-[var(--edge)] pb-1 mb-1">METRIC MONITOR</p>
-            <p>SAMPLE ID: IIST-MT-{activeTopic.id.toUpperCase()}-2026</p>
-            <p>PRECISION: ±0.0025 mm</p>
-            <p>STATUS: VERIFIED BY LAB</p>
-          </div>
-        </div>
-
-        {/* TOPIC CURRICULUM SYNOPSIS */}
-        <div className="border-t border-[var(--edge)] pt-3 mt-auto p-2 bg-[var(--panel)]/50">
-          <p className="text-sm text-[var(--ceramic-muted)] leading-relaxed">
-            {activeTopic.summary}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {activeTopic.details.map((detail) => (
-              <span 
-                key={detail}
-                className="flex items-center gap-1.5 rounded-full border border-[var(--edge)] bg-[var(--void)] px-2.5 py-0.5 text-xs text-[var(--ceramic-muted)]"
+      {/* Main panel */}
+      <div className="flex flex-col gap-4 min-w-0">
+        {/* Header */}
+        <div className="rounded-xl border border-[var(--edge)] bg-[var(--void-deep)] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <div
+                className="grid size-10 place-items-center rounded-lg border"
+                style={{ background: c.dim, borderColor: `${c.accent}30` }}
               >
-                <CheckCircle className="size-3 text-[var(--laser-green)]" />
-                {detail}
+                <activeTopic.icon size={20} className={c.text} />
+              </div>
+              <div>
+                <span
+                  className="rounded-md px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider border"
+                  style={{ background: c.dim, color: c.accent, borderColor: `${c.accent}25` }}
+                >
+                  {activeTopic.code}
+                </span>
+                <h2 className="font-display text-xl font-bold text-[var(--ceramic)] mt-1">
+                  {activeTopic.name}
+                </h2>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <BookOpen size={14} className="text-[var(--ceramic-muted)]" />
+              <span className="font-data text-[10px] uppercase tracking-wider text-[var(--ceramic-muted)]">
+                IDDTS Reference Panel
+              </span>
+            </div>
+          </div>
+          <p className="text-sm leading-6 text-[var(--ceramic-muted)]">{activeTopic.summary}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {activeTopic.details.map((d) => (
+              <span
+                key={d}
+                className="flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs"
+                style={{ borderColor: `${c.accent}20`, background: c.dim, color: c.accent }}
+              >
+                <CheckCircle size={11} style={{ color: c.accent }} />
+                {d}
               </span>
             ))}
           </div>
         </div>
-      </GlassCard>
+
+        {/* Diagram + Params grid */}
+        <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+          {/* Process Diagram */}
+          <div
+            className="rounded-xl border bg-[var(--void-deep)] overflow-hidden"
+            style={{ borderColor: `${c.accent}20` }}
+          >
+            <div
+              className="flex items-center justify-between px-4 py-2.5 border-b text-[10px] font-mono uppercase tracking-wider"
+              style={{ borderColor: `${c.accent}15`, background: c.dim, color: c.accent }}
+            >
+              <span>Process Schematic — {activeTopic.name}</span>
+              <span className="opacity-60">IIST-MT-{activeTopic.id.toUpperCase()}</span>
+            </div>
+            <div className="p-4 min-h-[240px] flex items-center justify-center bg-[var(--void-deep)]">
+              <ProcessDiagram type={activeTopic.diagramType} color={activeTopic.color} />
+            </div>
+          </div>
+
+          {/* Process Parameters Table */}
+          <div className="rounded-xl border border-[var(--edge)] bg-[var(--void-deep)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-[var(--edge)] bg-[var(--panel)]/50">
+              <p className="font-data text-[10px] uppercase tracking-wider text-[var(--ceramic-muted)]">
+                Process Parameters
+              </p>
+            </div>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-[var(--edge)]">
+                  <th className="text-left px-3 py-2 font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)]">Parameter</th>
+                  <th className="text-right px-3 py-2 font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)]">Typical</th>
+                  <th className="text-right px-3 py-2 font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)]">Unit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeTopic.params.map((p, i) => (
+                  <tr key={p.param} className={i % 2 === 0 ? "bg-[var(--panel)]/30" : ""}>
+                    <td className="px-3 py-2 text-[var(--ceramic)] font-medium text-xs">{p.param}</td>
+                    <td className="px-3 py-2 text-right font-mono" style={{ color: c.accent }}>{p.typical}</td>
+                    <td className="px-3 py-2 text-right text-[var(--ceramic-muted)] font-mono text-[10px]">{p.unit}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Formula block */}
+        <div className="rounded-xl border border-[var(--edge)] bg-[var(--void-deep)] p-5">
+          <p className="font-data text-[10px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-3">
+            Key Equation — {activeTopic.formulaLabel}
+          </p>
+          <div
+            className="rounded-lg border px-5 py-3 font-mono text-xl font-bold text-center tracking-wide mb-4"
+            style={{ borderColor: `${c.accent}25`, background: c.dim, color: c.accent }}
+          >
+            {activeTopic.formula}
+          </div>
+          <div className="grid gap-1.5 sm:grid-cols-2">
+            {activeTopic.formulaTerms.map((term) => (
+              <p key={term} className="text-xs text-[var(--ceramic-muted)] flex items-start gap-2">
+                <span style={{ color: c.accent }} className="mt-0.5 shrink-0">▸</span>
+                {term}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

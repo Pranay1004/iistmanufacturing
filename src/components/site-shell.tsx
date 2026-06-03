@@ -22,64 +22,62 @@ export function SiteHeader() {
   return (
     <>
       {/* Desktop Slim Sidebar (lg and up) - Rotated Vertical Text Navigation */}
-      <aside className="hidden lg:flex w-20 shrink-0 border-r border-[var(--edge)] bg-[var(--panel)] h-screen sticky top-0 flex-col justify-between z-40 shadow-sm select-none">
+      <aside className="hidden lg:flex w-16 shrink-0 border-r border-[var(--edge)] bg-[var(--panel)] h-screen sticky top-0 flex-col z-40 shadow-sm select-none overflow-hidden">
         
-        <div className="flex flex-col flex-1 w-full overflow-hidden">
-          {/* Logo Badge at the absolute top */}
-          <Link 
-            href="/" 
-            className="h-20 w-full flex items-center justify-center bg-gradient-to-br from-[var(--arc-blue)] to-[var(--cool-zone)] text-white hover:brightness-110 transition-all select-none border-b border-[var(--edge)] relative shrink-0"
-            aria-label="Department Home"
-          >
-            <div className="absolute top-1 left-1 size-1 border-t border-l border-white/50" />
-            <div className="absolute top-1 right-1 size-1 border-t border-r border-white/50" />
-            <div className="absolute bottom-1 left-1 size-1 border-b border-l border-white/50" />
-            <div className="absolute bottom-1 right-1 size-1 border-b border-r border-white/50" />
-            <Rocket size={20} aria-hidden />
-          </Link>
+        {/* Logo Badge at the absolute top */}
+        <Link 
+          href="/" 
+          className="h-16 w-full flex items-center justify-center bg-gradient-to-br from-[var(--arc-blue)] to-[var(--cool-zone)] text-white hover:brightness-110 transition-all select-none border-b border-[var(--edge)] relative shrink-0"
+          aria-label="Department Home"
+        >
+          <div className="absolute top-1 left-1 size-1 border-t border-l border-white/50" />
+          <div className="absolute top-1 right-1 size-1 border-t border-r border-white/50" />
+          <div className="absolute bottom-1 left-1 size-1 border-b border-l border-white/50" />
+          <div className="absolute bottom-1 right-1 size-1 border-b border-r border-white/50" />
+          <Rocket size={18} aria-hidden />
+        </Link>
 
-          {/* Navigation Links - Stacked vertically with rotated text, scrollable if viewport overflows */}
-          <nav className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col w-full">
-            {navItems.map(([label, href]) => {
-              const isActive = pathname === href;
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={[
-                    "group relative w-full h-24 flex items-center justify-center border-b border-[var(--edge)] transition-all duration-300 cursor-pointer select-none shrink-0",
-                    isActive
-                      ? "bg-white text-[var(--ceramic)] border-l-[6px] border-[var(--forge-amber)] shadow-sm font-bold"
-                      : "bg-transparent text-[var(--ceramic-muted)] hover:text-[var(--ceramic)] hover:bg-[var(--panel)]",
-                  ].join(" ")}
+        {/* Navigation Links - fills remaining space, scrolls if needed */}
+        <nav className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col w-full min-h-0">
+          {navItems.map(([label, href]) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={[
+                  "group relative w-full flex-1 min-h-[52px] flex items-center justify-center border-b border-[var(--edge)] transition-all duration-300 cursor-pointer select-none",
+                  isActive
+                    ? "bg-white text-[var(--ceramic)] border-l-[3px] border-[var(--forge-amber)] shadow-sm font-bold"
+                    : "bg-transparent text-[var(--ceramic-muted)] hover:text-[var(--ceramic)] hover:bg-[var(--panel)]",
+                ].join(" ")}
+              >
+                <span 
+                  className="font-display text-[9px] uppercase tracking-[0.14em] text-center whitespace-nowrap transition-colors duration-200"
+                  style={{ 
+                    writingMode: "vertical-rl", 
+                    transform: "rotate(180deg)" 
+                  }}
                 >
-                  <span 
-                    className="font-display text-xs uppercase tracking-[0.16em] text-center whitespace-nowrap transition-colors duration-200"
-                    style={{ 
-                      writingMode: "vertical-rl", 
-                      transform: "rotate(180deg)" 
-                    }}
-                  >
-                    {label}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+                  {label}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
 
-        {/* Footer Login Action inside Sidebar */}
+        {/* Login — always pinned to bottom, never hidden */}
         <Link
           href="/login"
           className={[
-            "group relative w-full h-20 flex flex-col items-center justify-center transition-all duration-300 border-t border-[var(--edge)] cursor-pointer select-none shrink-0",
-            pathname === "/login"
-              ? "bg-white text-[var(--arc-blue)] border-l-[6px] border-[var(--arc-blue)]"
-              : "bg-transparent text-[var(--ceramic-muted)] hover:text-[var(--arc-blue)] hover:bg-[var(--panel)]",
+            "group relative w-full h-16 flex flex-col items-center justify-center transition-all duration-300 border-t-2 cursor-pointer select-none shrink-0",
+            pathname === "/login" || pathname === "/dashboard"
+              ? "bg-[var(--arc-blue)] text-white border-[var(--arc-blue)]"
+              : "bg-[var(--void)] text-[var(--arc-blue)] border-[var(--arc-blue)]/30 hover:bg-[var(--arc-blue)] hover:text-white hover:border-[var(--arc-blue)]",
           ].join(" ")}
           aria-label="Login Portal"
         >
-          <LogIn size={18} className="mb-1 transition-colors duration-200" aria-hidden />
+          <LogIn size={16} className="mb-0.5 transition-colors duration-200" aria-hidden />
           <span className="font-data text-[8px] uppercase tracking-wider select-none font-bold">
             Login
           </span>
@@ -99,9 +97,10 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <Link
             href="/login"
-            className="p-2 rounded border border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic-muted)] hover:text-[var(--arc-blue)]"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-[var(--arc-blue)] bg-[var(--arc-blue-dim)] text-[var(--arc-blue)] text-xs font-semibold hover:bg-[var(--arc-blue)] hover:text-white transition-all"
           >
-            <LogIn size={14} aria-hidden />
+            <LogIn size={13} aria-hidden />
+            Login
           </Link>
           <button
             type="button"
