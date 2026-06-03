@@ -18,21 +18,10 @@ export default function ResearchPage() {
 
   return (
     <PageFrame>
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <ScrollReveal>
-          <SectionLabel className="mb-3">Projects & Research</SectionLabel>
-          <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl">
-            Ongoing M.Tech and PhD work in aerospace manufacturing technology.
-          </h1>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8">
-            Select a project from the directory below to view abstract details, progress summaries, and researcher profiles.
-          </p>
-        </ScrollReveal>
+      <main>
+        <ResearchDirectory />
 
-        {/* ─── Interactive Research Directory ─── */}
-        <section className="mt-12">
-          <ResearchDirectory />
-        </section>
+        <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
 
         {/* ─── Themes & Outputs ─── */}
         <div className="mt-16 grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
@@ -101,6 +90,7 @@ export default function ResearchPage() {
             </div>
           </ScrollReveal>
         </section>
+        </div>
       </main>
     </PageFrame>
   );

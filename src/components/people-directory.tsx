@@ -48,22 +48,23 @@ export function PeopleDirectory() {
     setVisibleCount(8);
   };
 
-  // Auto scroll reveal mechanism
+  // Auto scroll reveal — throttled + passive for mobile perf
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      if (typeof window === "undefined") return;
-      
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = document.documentElement.clientHeight;
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-
-      // Scrolled to 85% of the page
-      if (scrollTop + clientHeight >= scrollHeight - 300) {
-        setVisibleCount((prev) => Math.min(prev + 8, filtered.length));
-      }
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        if (scrollTop + clientHeight >= scrollHeight - 400) {
+          setVisibleCount((prev) => Math.min(prev + 8, filtered.length));
+        }
+        ticking = false;
+      });
     };
-
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [filtered.length]);
 
@@ -150,21 +151,21 @@ export function PeopleDirectory() {
           <span className="block font-data text-[9px] uppercase tracking-[0.16em] text-[var(--ceramic-muted)] mb-2.5">
             Quick Select ({filtered.length} Profiles)
           </span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {filtered.map((person) => (
               <button
                 key={person.slug}
                 type="button"
                 onClick={() => setPreview(person)}
                 className={[
-                  "w-full rounded border px-3 py-1.5 font-display text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-2 text-left justify-start min-w-0",
+                  "w-full rounded border px-2.5 py-1.5 font-display text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 text-left justify-start min-w-0",
                   type === "student"
-                    ? "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--forge-amber)] hover:shadow-[0_0_6px_rgba(245,158,11,0.2)]"
-                    : "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--laser-green)] hover:shadow-[0_0_6px_rgba(34,197,94,0.2)]",
+                    ? "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--forge-amber)]"
+                    : "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--laser-green)]",
                 ].join(" ")}
               >
                 <span className={[
-                  "size-1.5 rounded-full shrink-0 animate-pulse",
+                  "size-1.5 rounded-full shrink-0 opacity-80",
                   type === "student" ? "bg-[var(--forge-amber)]" : "bg-[var(--laser-green)]",
                 ].join(" ")} />
                 <span className="truncate">{person.name}</span>
@@ -178,7 +179,7 @@ export function PeopleDirectory() {
 
         {/* Directory Grid */}
         <section className="flex flex-col gap-6">
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.slice(0, visibleCount).map((person) => (
               <PersonCard key={person.slug} person={person} onPreview={setPreview} />
             ))}

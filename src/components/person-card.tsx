@@ -63,12 +63,12 @@ export function PersonCard({
 }) {
   return (
     <GlassCard 
-      className="p-4 cursor-pointer hover:cursor-pointer hover:border-[var(--arc-blue)] transition-all duration-300 group" 
+      className="p-3 cursor-pointer hover:border-[var(--arc-blue)] transition-colors duration-200 group" 
       hover={true} 
       as="article"
       onClick={() => onPreview?.(person)}
     >
-      <div className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
         <div className="flex justify-center sm:justify-start">
           <Portrait name={person.name} />
         </div>
