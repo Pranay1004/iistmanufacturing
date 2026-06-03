@@ -181,7 +181,7 @@ export function ResearchDirectory() {
 
         {/* Directory Grid */}
         <section className="flex flex-col gap-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             {filtered.slice(0, visibleCount).map((person) => {
               const project = person.projects[0];
               return (

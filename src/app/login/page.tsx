@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { PageFrame } from "@/components/site-shell";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
@@ -100,6 +100,40 @@ export default function LoginPage() {
       const error = err as { message?: string };
       showMessage(error.message || String(err), "error");
     }
+  }
+
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  async function handleSeedAuth() {
+    if (!auth) return showMessage("Firebase not configured.", "error");
+    setIsSeeding(true);
+    showMessage("Starting account initialization...", "info");
+    let createdCount = 0;
+    let existedCount = 0;
+    let errorCount = 0;
+
+    const candidates = people.filter((p) => p.loginId);
+
+    for (const person of candidates) {
+      try {
+        await createUserWithEmailAndPassword(auth, person.officialEmail, person.loginId as string);
+        await signOut(auth);
+        createdCount++;
+      } catch (err: any) {
+        if (err.code === "auth/email-already-in-use") {
+          existedCount++;
+        } else {
+          console.error(`Error creating ${person.officialEmail}:`, err);
+          errorCount++;
+        }
+      }
+    }
+
+    showMessage(
+      `Auth sync complete: ${createdCount} new accounts created, ${existedCount} already existed, ${errorCount} errors.`,
+      errorCount > 0 ? "error" : "success"
+    );
+    setIsSeeding(false);
   }
 
   return (
@@ -209,6 +243,14 @@ export default function LoginPage() {
                   <span className="font-semibold text-[var(--ceramic)]">First time?</span>{" "}
                   Your initial password is your roll number. Change it from the dashboard after signing in.
                 </p>
+                <button
+                  type="button"
+                  onClick={handleSeedAuth}
+                  disabled={isSeeding}
+                  className="mt-3 w-full text-left text-xs font-semibold text-[var(--arc-blue)] hover:text-[var(--forge-amber)] transition-colors cursor-pointer border border-[var(--edge)] bg-[var(--void)] rounded-md px-3 py-2 flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  {isSeeding ? "⚙️ Synchronizing members..." : "⚙️ Sync Student Accounts to Firebase"}
+                </button>
               </div>
             </GlassCard>
           </ScrollReveal>
