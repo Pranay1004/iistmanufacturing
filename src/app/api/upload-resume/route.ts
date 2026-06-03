@@ -3,9 +3,33 @@ import admin from "firebase-admin";
 import fs from "fs";
 
 const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-if (serviceAccountPath && !admin.apps.length) {
-  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+if (!admin.apps.length) {
+  if (serviceAccountJson) {
+    try {
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    } catch (e) {
+      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", e);
+    }
+  } else if (serviceAccountPath) {
+    if (serviceAccountPath.trim().startsWith("{")) {
+      try {
+        const serviceAccount = JSON.parse(serviceAccountPath);
+        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      } catch (e) {
+        console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS as JSON:", e);
+      }
+    } else if (fs.existsSync(serviceAccountPath)) {
+      try {
+        const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      } catch (e) {
+        console.error("Failed to read/parse GOOGLE_APPLICATION_CREDENTIALS file path:", e);
+      }
+    }
+  }
 }
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
