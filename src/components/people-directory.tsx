@@ -21,7 +21,7 @@ export function PeopleDirectory() {
   const [type, setType] = useState<PersonType>("student");
   const [cohort, setCohort] = useState("2025-2027");
   const [preview, setPreview] = useState<Person | null>(null);
-  const [visibleCount, setVisibleCount] = useState(4);
+  const [visibleCount, setVisibleCount] = useState(8);
 
   const filtered = useMemo(
     () =>
@@ -40,12 +40,12 @@ export function PeopleDirectory() {
   const handleTypeChange = (newType: PersonType) => {
     setType(newType);
     setCohort(cohortsForType[newType][0] ?? "");
-    setVisibleCount(4);
+    setVisibleCount(8);
   };
 
   const handleCohortChange = (newCohort: string) => {
     setCohort(newCohort);
-    setVisibleCount(4);
+    setVisibleCount(8);
   };
 
   // Auto scroll reveal mechanism
@@ -59,7 +59,7 @@ export function PeopleDirectory() {
 
       // Scrolled to 85% of the page
       if (scrollTop + clientHeight >= scrollHeight - 300) {
-        setVisibleCount((prev) => Math.min(prev + 4, filtered.length));
+        setVisibleCount((prev) => Math.min(prev + 8, filtered.length));
       }
     };
 
@@ -69,123 +69,134 @@ export function PeopleDirectory() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col gap-6">
         
-        {/* Left Column: Left Sidebar Control Console with Vertical Tabs */}
-        <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-6">
-          {/* Main Category Selector */}
-          <div className="flex flex-col gap-2 rounded-lg border border-[var(--edge)] bg-[var(--panel)] p-3">
-            <span className="font-data text-[10px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1 select-none">
-              Category
+        {/* Top Header Row with Title/Paragraph on Left and Category/Cohort Selectors on Right */}
+        <div className="flex flex-col lg:flex-row gap-6 justify-between items-start border-b border-[var(--edge)] pb-6">
+          <div className="max-w-2xl">
+            <span className="font-data text-[10px] uppercase tracking-wider text-[var(--arc-blue)] select-none">
+              People Directory
             </span>
-            <div className="flex flex-col gap-1.5">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.value}
-                  type="button"
-                  onClick={() => handleTypeChange(tab.value)}
-                  className={[
-                    "w-full text-left rounded-md border px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-between",
-                    type === tab.value
-                      ? "border-[var(--arc-blue)] bg-[var(--arc-blue)] text-white shadow-[var(--shadow-glow-blue)]"
-                      : "border-[var(--edge)] bg-[var(--void)] text-[var(--ceramic-muted)] hover:border-[var(--arc-blue)] hover:text-[var(--ceramic)]",
-                  ].join(" ")}
-                >
-                  <span>{tab.label}</span>
-                  <span className={[
-                    "text-xs px-2 py-0.5 rounded-full font-data",
-                    type === tab.value ? "bg-white/20 text-white" : "bg-[var(--panel)] text-[var(--ceramic-muted)]",
-                  ].join(" ")}>
-                    {people.filter(p => p.type === tab.value).length}
-                  </span>
-                </button>
-              ))}
-            </div>
+            <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-[var(--ceramic)] sm:text-4xl">
+              M.Tech Scholars & PhD Researchers
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-[var(--ceramic-muted)]">
+              Academic directory arranged by cohort year. Select a profile card to view projects, research details, and upload credentials.
+            </p>
           </div>
 
-          {/* Cohort Year Selector */}
-          {availableCohorts.length > 0 && (
-            <div className="flex flex-col gap-2 rounded-lg border border-[var(--edge)] bg-[var(--panel)] p-3">
-              <span className="font-data text-[10px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1 select-none">
-                Cohort Year
+          {/* Selectors Container */}
+          <div className="flex flex-wrap sm:flex-nowrap gap-4 w-full lg:w-auto shrink-0">
+            {/* Category Selector */}
+            <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--edge)] bg-[var(--panel)] p-2.5 w-full sm:w-[220px]">
+              <span className="font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] select-none">
+                Category
               </span>
-              <div className="flex flex-row flex-wrap gap-1.5 lg:flex-col lg:flex-nowrap">
-                {availableCohorts.map((item) => (
+              <div className="flex flex-col gap-1">
+                {tabs.map((tab) => (
                   <button
-                    key={item}
+                    key={tab.value}
                     type="button"
-                    onClick={() => handleCohortChange(item)}
+                    onClick={() => handleTypeChange(tab.value)}
                     className={[
-                      "w-fit lg:w-full text-left rounded-md border px-3 py-2 font-data text-xs uppercase tracking-[0.12em] transition-all duration-200 cursor-pointer",
-                      cohort === item
-                        ? "border-[var(--forge-amber)] bg-[var(--forge-amber)] text-white shadow-[var(--shadow-glow-amber)]"
-                        : "border-[var(--edge)] bg-[var(--void)] text-[var(--ceramic-muted)] hover:border-[var(--forge-amber)] hover:text-[var(--ceramic)]",
+                      "w-full text-left rounded border px-2.5 py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer flex items-center justify-between",
+                      type === tab.value
+                        ? "border-[var(--arc-blue)] bg-[var(--arc-blue)] text-white shadow-[var(--shadow-glow-blue)]"
+                        : "border-[var(--edge)] bg-[var(--void)] text-[var(--ceramic-muted)] hover:border-[var(--arc-blue)] hover:text-[var(--ceramic)]",
                     ].join(" ")}
                   >
-                    {item}
+                    <span>{tab.label}</span>
+                    <span className={[
+                      "text-[10px] px-1.5 py-0.2 rounded-full font-data",
+                      type === tab.value ? "bg-white/20 text-white" : "bg-[var(--panel)] text-[var(--ceramic-muted)]",
+                    ].join(" ")}>
+                      {people.filter(p => p.type === tab.value).length}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
-          )}
-        </aside>
 
-        {/* Right Column: Content Area */}
-        <div className="flex-1 min-w-0 flex flex-col gap-6">
-          {/* Name Navigation Ribbon - Shows all names in a single horizontal scrolling row */}
-          <div className="rounded-lg border border-[var(--edge)] bg-[var(--void-deep)]/40 p-4 overflow-hidden select-none">
-            <span className="block font-data text-[9px] uppercase tracking-[0.16em] text-[var(--ceramic-muted)] mb-2.5">
-              Quick Select ({filtered.length} Profiles)
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {filtered.map((person) => (
-                <button
-                  key={person.slug}
-                  type="button"
-                  onClick={() => setPreview(person)}
-                  className={[
-                    "w-full rounded border px-3 py-1.5 font-display text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-2 text-left justify-start min-w-0",
-                    type === "student"
-                      ? "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--forge-amber)] hover:shadow-[0_0_6px_rgba(245,158,11,0.2)]"
-                      : "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--laser-green)] hover:shadow-[0_0_6px_rgba(34,197,94,0.2)]",
-                  ].join(" ")}
-                >
-                  <span className={[
-                    "size-1.5 rounded-full shrink-0 animate-pulse",
-                    type === "student" ? "bg-[var(--forge-amber)]" : "bg-[var(--laser-green)]",
-                  ].join(" ")} />
-                  <span className="truncate">{person.name}</span>
-                </button>
-              ))}
-              {filtered.length === 0 && (
-                <span className="col-span-full text-xs text-[var(--ceramic-muted)] italic py-1 select-none">No active profiles in selected cohort.</span>
-              )}
-            </div>
-          </div>
-
-          {/* Directory Grid */}
-          <section className="flex flex-col gap-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              {filtered.slice(0, visibleCount).map((person) => (
-                <PersonCard key={person.slug} person={person} onPreview={setPreview} />
-              ))}
-            </div>
-
-            {/* Load More Expander control */}
-            {visibleCount < filtered.length && (
-              <div className="flex justify-center mt-2">
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((prev) => Math.min(prev + 4, filtered.length))}
-                  className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-4 py-2 font-data text-xs uppercase tracking-wider text-[var(--ceramic-muted)] hover:border-[var(--arc-blue)] hover:text-[var(--arc-blue)] hover:shadow-[var(--shadow-glow-blue)] transition-all duration-200 cursor-pointer"
-                >
-                  Load More Profiles (+{filtered.length - visibleCount})
-                </button>
+            {/* Cohort Year Selector */}
+            {availableCohorts.length > 0 && (
+              <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--edge)] bg-[var(--panel)] p-2.5 w-full sm:w-[150px]">
+                <span className="font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] select-none">
+                  Cohort
+                </span>
+                <div className="flex flex-col gap-1">
+                  {availableCohorts.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => handleCohortChange(item)}
+                      className={[
+                        "w-full text-left rounded border px-2.5 py-1.5 font-data text-[10px] uppercase tracking-[0.1em] transition-all duration-200 cursor-pointer",
+                        cohort === item
+                          ? "border-[var(--forge-amber)] bg-[var(--forge-amber)] text-white shadow-[var(--shadow-glow-amber)]"
+                          : "border-[var(--edge)] bg-[var(--void)] text-[var(--ceramic-muted)] hover:border-[var(--forge-amber)] hover:text-[var(--ceramic)]",
+                      ].join(" ")}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-          </section>
+          </div>
         </div>
 
+        {/* Name Navigation Ribbon - Shows all names in a single horizontal scrolling row */}
+        <div className="rounded-lg border border-[var(--edge)] bg-[var(--void-deep)]/40 p-4 overflow-hidden select-none">
+          <span className="block font-data text-[9px] uppercase tracking-[0.16em] text-[var(--ceramic-muted)] mb-2.5">
+            Quick Select ({filtered.length} Profiles)
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {filtered.map((person) => (
+              <button
+                key={person.slug}
+                type="button"
+                onClick={() => setPreview(person)}
+                className={[
+                  "w-full rounded border px-3 py-1.5 font-display text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-2 text-left justify-start min-w-0",
+                  type === "student"
+                    ? "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--forge-amber)] hover:shadow-[0_0_6px_rgba(245,158,11,0.2)]"
+                    : "border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic)] hover:border-[var(--laser-green)] hover:shadow-[0_0_6px_rgba(34,197,94,0.2)]",
+                ].join(" ")}
+              >
+                <span className={[
+                  "size-1.5 rounded-full shrink-0 animate-pulse",
+                  type === "student" ? "bg-[var(--forge-amber)]" : "bg-[var(--laser-green)]",
+                ].join(" ")} />
+                <span className="truncate">{person.name}</span>
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <span className="col-span-full text-xs text-[var(--ceramic-muted)] italic py-1 select-none">No active profiles in selected cohort.</span>
+            )}
+          </div>
+        </div>
+
+        {/* Directory Grid */}
+        <section className="flex flex-col gap-6">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {filtered.slice(0, visibleCount).map((person) => (
+              <PersonCard key={person.slug} person={person} onPreview={setPreview} />
+            ))}
+          </div>
+
+          {/* Load More Expander control */}
+          {visibleCount < filtered.length && (
+            <div className="flex justify-center mt-2">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => Math.min(prev + 8, filtered.length))}
+                className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-4 py-2 font-data text-xs uppercase tracking-wider text-[var(--ceramic-muted)] hover:border-[var(--arc-blue)] hover:text-[var(--arc-blue)] hover:shadow-[var(--shadow-glow-blue)] transition-all duration-200 cursor-pointer"
+              >
+                Load More Profiles (+{filtered.length - visibleCount})
+              </button>
+            </div>
+          )}
+        </section>
       </div>
 
       {/* Preview modal */}
