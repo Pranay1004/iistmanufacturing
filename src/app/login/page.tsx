@@ -10,6 +10,8 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { MetalButton } from "@/components/ui/MetalButton";
 import { KeyRound, ShieldCheck, Upload, UserRoundCheck, ArrowRight, Terminal } from "lucide-react";
 
+import { people } from "@/lib/data";
+
 const loginFeatures = [
   {
     icon: UserRoundCheck,
@@ -48,28 +50,19 @@ export default function LoginPage() {
     try {
       let emailToUse = email.trim();
       if (!emailToUse.includes("@")) {
-        // Try common IIST email formats
-        const candidates = [
-          `${emailToUse}@pg.iist.ac.in`,
-          `${emailToUse}@iist.ac.in`,
-        ];
-        let signed = false;
-        for (const cand of candidates) {
-          try {
-            await signInWithEmailAndPassword(auth, cand, password);
-            showMessage(`✓ Signed in as ${cand}. Redirecting to dashboard...`, "success");
-            signed = true;
-            setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
-            break;
-          } catch {
-            // try next
-          }
+        // Resolve using local people data matching loginId (roll number)
+        const match = people.find(
+          (p) => p.loginId?.toLowerCase() === emailToUse.toLowerCase()
+        );
+        if (match) {
+          emailToUse = match.officialEmail;
+        } else {
+          // Guess fallback
+          emailToUse = `${emailToUse.toLowerCase()}@pg.iist.ac.in`;
         }
-        if (signed) { setIsLoading(false); return; }
-        emailToUse = `${emailToUse}@pg.iist.ac.in`;
       }
       await signInWithEmailAndPassword(auth, emailToUse, password);
-      showMessage(`✓ Signed in as ${emailToUse}. Redirecting...`, "success");
+      showMessage(`✓ Signed in as ${emailToUse}. Redirecting to dashboard...`, "success");
       setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
     } catch (err) {
       const error = err as { code?: string; message?: string };
@@ -89,7 +82,17 @@ export default function LoginPage() {
 
   async function handleForgotPassword() {
     if (!auth) return showMessage("Firebase not configured.", "error");
-    const emailToUse = email.includes("@") ? email : `${email}@pg.iist.ac.in`;
+    let emailToUse = email.trim();
+    if (!emailToUse.includes("@")) {
+      const match = people.find(
+        (p) => p.loginId?.toLowerCase() === emailToUse.toLowerCase()
+      );
+      if (match) {
+        emailToUse = match.officialEmail;
+      } else {
+        emailToUse = `${emailToUse.toLowerCase()}@pg.iist.ac.in`;
+      }
+    }
     try {
       await sendPasswordResetEmail(auth, emailToUse);
       showMessage(`✓ Password reset email sent to ${emailToUse}`, "success");

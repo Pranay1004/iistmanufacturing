@@ -527,7 +527,7 @@ people.push(
     batch: "2025-2027",
     cohort: "2025-2027",
     specialization,
-    officialEmail: `${roll.toLowerCase()}@iist.ac.in`,
+    officialEmail: `${name.split(" ")[0].toLowerCase()}.${roll.toLowerCase()}@pg.iist.ac.in`,
     personalEmail: `${slug.replaceAll("-", ".")}@gmail.com`,
     portfolio: `https://${slug}.portfolio.example`,
     linkedin: `https://www.linkedin.com/in/${slug}`,
