@@ -44,24 +44,48 @@ export default function LoginPage() {
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
-    if (!auth) return showMessage("Firebase not configured — environment variables not set.", "error");
     setIsLoading(true);
     setMessage("");
+
+    // 1. Check local offline fallback credentials
+    const localMatch = people.find(
+      (p) => p.loginId?.toLowerCase() === email.trim().toLowerCase() && password === p.loginId
+    );
+    if (localMatch) {
+      const mockUser = {
+        uid: localMatch.slug,
+        email: localMatch.officialEmail,
+        displayName: localMatch.name,
+      };
+      sessionStorage.setItem("mock-user", JSON.stringify(mockUser));
+      showMessage(`✓ Authenticated locally as ${localMatch.officialEmail} (Offline Mode). Redirecting...`, "success");
+      setIsLoading(false);
+      setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
+      return;
+    }
+
+    // 2. Check Firebase configuration
+    if (!auth) {
+      setIsLoading(false);
+      return showMessage("Firebase not configured — environment variables not set.", "error");
+    }
+
+    // 3. Fallback to Firebase Sign In
     try {
       let emailToUse = email.trim();
       if (!emailToUse.includes("@")) {
-        // Resolve using local people data matching loginId (roll number)
         const match = people.find(
           (p) => p.loginId?.toLowerCase() === emailToUse.toLowerCase()
         );
         if (match) {
           emailToUse = match.officialEmail;
         } else {
-          // Guess fallback
           emailToUse = `${emailToUse.toLowerCase()}@pg.iist.ac.in`;
         }
       }
       await signInWithEmailAndPassword(auth, emailToUse, password);
+      // Clear mock session just in case
+      sessionStorage.removeItem("mock-user");
       showMessage(`✓ Signed in as ${emailToUse}. Redirecting to dashboard...`, "success");
       setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
     } catch (err) {

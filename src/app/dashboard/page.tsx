@@ -1,14 +1,14 @@
 "use client";
-import { useState } from "react";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { useState, useEffect } from "react";
+import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { PageFrame } from "@/components/site-shell";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { MetalButton } from "@/components/ui/MetalButton";
-import { Divider } from "@/components/ui/Divider";
 import { KeyRound, Upload, ShieldCheck, Terminal } from "lucide-react";
+import { people } from "@/lib/data";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
@@ -17,38 +17,92 @@ export default function DashboardPage() {
   const [slug, setSlug] = useState("");
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"info" | "error" | "success">("info");
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   function showMessage(text: string, type: "info" | "error" | "success" = "info") {
     setMessage(text);
     setMessageType(type);
   }
 
+  useEffect(() => {
+    // 1. Check for active mock user session
+    const savedMock = sessionStorage.getItem("mock-user");
+    if (savedMock) {
+      try {
+        const u = JSON.parse(savedMock);
+        setCurrentUser(u);
+        const match = people.find((p) => p.officialEmail === u.email);
+        if (match) setSlug(match.slug);
+      } catch (e) {
+        console.error("Failed to parse mock user:", e);
+      }
+    }
+
+    // 2. Listen to live Firebase Auth state
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setCurrentUser(user);
+          const match = people.find((p) => p.officialEmail === user.email);
+          if (match) setSlug(match.slug);
+        } else if (!sessionStorage.getItem("mock-user")) {
+          setCurrentUser(null);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
   async function signIn() {
+    setMessage("");
+    
+    // Offline bypass validation check
+    const match = people.find(
+      (p) => p.loginId?.toLowerCase() === email.trim().toLowerCase() && password === p.loginId
+    );
+    if (match) {
+      const mockUser = {
+        uid: match.slug,
+        email: match.officialEmail,
+        displayName: match.name,
+      };
+      sessionStorage.setItem("mock-user", JSON.stringify(mockUser));
+      setCurrentUser(mockUser);
+      setSlug(match.slug);
+      showMessage(`✓ Authenticated locally as ${match.officialEmail} (Offline Mode)`, "success");
+      return;
+    }
+
     if (!auth) return showMessage("Firebase not configured — add environment variables to enable.", "error");
     try {
-      let emailToUse = email;
-      if (!email.includes("@")) {
-        const candidates = [`${email}@pg.iist.ac.in`, `${email}@iist.ac.in`, `${email}@iist.local`];
-        let signed = false;
-        for (const cand of candidates) {
-          try {
-            await signInWithEmailAndPassword(auth, cand, password);
-            showMessage(`✓ Authenticated as ${cand}`, "success");
-            signed = true;
-            break;
-          } catch {
-            // try next
-          }
+      let emailToUse = email.trim();
+      if (!emailToUse.includes("@")) {
+        const candidate = people.find((p) => p.loginId?.toLowerCase() === emailToUse.toLowerCase());
+        if (candidate) {
+          emailToUse = candidate.officialEmail;
+        } else {
+          emailToUse = `${emailToUse.toLowerCase()}@pg.iist.ac.in`;
         }
-        if (signed) return;
-        emailToUse = `${email}@pg.iist.ac.in`;
       }
-      await signInWithEmailAndPassword(auth, emailToUse, password);
+      const cred = await signInWithEmailAndPassword(auth, emailToUse, password);
+      sessionStorage.removeItem("mock-user"); // Clear offline session if online succeeds
+      setCurrentUser(cred.user);
       showMessage(`✓ Authenticated as ${emailToUse}`, "success");
-    } catch (err) {
-      const error = err as Error;
-      showMessage(error.message || String(err), "error");
+      const m = people.find((p) => p.officialEmail === emailToUse);
+      if (m) setSlug(m.slug);
+    } catch (err: any) {
+      showMessage(err.message || String(err), "error");
     }
+  }
+
+  async function signOutUser() {
+    sessionStorage.removeItem("mock-user");
+    if (auth) {
+      await signOut(auth);
+    }
+    setCurrentUser(null);
+    setSlug("");
+    showMessage("Logged out successfully.", "info");
   }
 
   async function forgotPassword() {
@@ -58,28 +112,41 @@ export default function DashboardPage() {
       if (!targetEmail.includes("@")) targetEmail = `${email}@pg.iist.ac.in`;
       await sendPasswordResetEmail(auth, targetEmail);
       showMessage(`✓ Password reset email sent to ${targetEmail}`, "success");
-    } catch (err) {
-      const error = err as Error;
-      showMessage(error.message || String(err), "error");
+    } catch (err: any) {
+      showMessage(err.message || String(err), "error");
     }
   }
 
   async function upload() {
-    if (!auth || !auth.currentUser) return showMessage("Sign in first", "error");
+    if (!currentUser) return showMessage("Sign in first", "error");
     if (!file) return showMessage("Choose a file to upload", "error");
-    const token = await auth.currentUser.getIdToken();
+
+    let token = "mock-token";
+    if (currentUser.getIdToken) {
+      try {
+        token = await currentUser.getIdToken();
+      } catch (e) {
+        console.warn("Failed to get Firebase ID token, using mock-token:", e);
+      }
+    }
+
     const fd = new FormData();
-    fd.append("slug", slug || auth.currentUser.uid);
+    fd.append("slug", slug || currentUser.uid);
     fd.append("resume", file);
     showMessage("Uploading...", "info");
-    const res = await fetch("/api/upload-resume", {
-      method: "POST",
-      body: fd,
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const j = await res.json();
-    if (res.ok) showMessage(`✓ Upload complete: ${j.downloadUrl}`, "success");
-    else showMessage(`✗ Error: ${j.error || JSON.stringify(j)}`, "error");
+    
+    try {
+      const res = await fetch("/api/upload-resume", {
+        method: "POST",
+        body: fd,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const j = await res.json();
+      if (res.ok) showMessage(`✓ Upload complete: ${j.downloadUrl}`, "success");
+      else showMessage(`✗ Error: ${j.error || JSON.stringify(j)}`, "error");
+    } catch (err: any) {
+      showMessage(err.message || String(err), "error");
+    }
   }
 
   return (
@@ -98,44 +165,78 @@ export default function DashboardPage() {
         <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.85fr]">
           {/* ─── Authentication ─── */}
           <ScrollReveal variant="left" as="section">
-            <GlassCard hover={false} variant="featured" accent="blue">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="grid size-10 place-items-center rounded-lg bg-[var(--arc-blue-dim)]">
-                  <KeyRound size={20} className="text-[var(--arc-blue)]" aria-hidden />
+            {currentUser ? (
+              <GlassCard hover={false} variant="featured" accent="blue">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="grid size-10 place-items-center rounded-lg bg-[var(--arc-blue-dim)]">
+                    <KeyRound size={20} className="text-[var(--arc-blue)]" aria-hidden />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Active Session</h2>
+                    <p className="text-xs text-[var(--ceramic-muted)]">Signed in successfully</p>
+                  </div>
                 </div>
-                <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Sign In</h2>
-              </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
-                    Email or Username
-                  </label>
-                  <input
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input-metal"
-                    placeholder="sc22b001 or name@pg.iist.ac.in"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <span className="block font-data text-[10px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1">
+                      Authenticated Account
+                    </span>
+                    <p className="font-semibold text-sm text-[var(--ceramic)] break-all">{currentUser.email}</p>
+                  </div>
+                  <div>
+                    <span className="block font-data text-[10px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1">
+                      Assigned Profile Slug
+                    </span>
+                    <code className="font-mono text-xs text-[var(--arc-blue)]">{slug || "Not found in directory"}</code>
+                  </div>
+                  <div className="pt-2">
+                    <MetalButton onClick={signOutUser} className="w-full justify-center">
+                      Sign Out
+                    </MetalButton>
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input-metal"
-                    placeholder="••••••••"
-                  />
+              </GlassCard>
+            ) : (
+              <GlassCard hover={false} variant="featured" accent="blue">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="grid size-10 place-items-center rounded-lg bg-[var(--arc-blue-dim)]">
+                    <KeyRound size={20} className="text-[var(--arc-blue)]" aria-hidden />
+                  </div>
+                  <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Sign In</h2>
                 </div>
-                <div className="flex flex-wrap gap-3 pt-1">
-                  <MetalButton onClick={signIn}>Sign In</MetalButton>
-                  <MetalButton variant="ghost" onClick={forgotPassword}>Forgot Password</MetalButton>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
+                      Email or Username
+                    </label>
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="input-metal"
+                      placeholder="sc25m147 or name@pg.iist.ac.in"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="input-metal"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-3 pt-1">
+                    <MetalButton onClick={signIn}>Sign In</MetalButton>
+                    <MetalButton variant="ghost" onClick={forgotPassword}>Forgot Password</MetalButton>
+                  </div>
                 </div>
-              </div>
-            </GlassCard>
+              </GlassCard>
+            )}
           </ScrollReveal>
 
           {/* ─── Status & Upload ─── */}
@@ -159,6 +260,7 @@ export default function DashboardPage() {
                       onChange={(e) => setSlug(e.target.value)}
                       className="input-metal"
                       placeholder="e.g. pranay-pandey"
+                      disabled={!!currentUser}
                     />
                   </div>
                   <div>
@@ -178,7 +280,9 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <MetalButton variant="secondary" onClick={upload}>Upload Resume PDF</MetalButton>
+                  <MetalButton variant="secondary" onClick={upload} disabled={!currentUser}>
+                    Upload Resume PDF
+                  </MetalButton>
                 </div>
               </GlassCard>
 
@@ -190,8 +294,11 @@ export default function DashboardPage() {
                   <h3 className="font-display text-lg font-semibold text-[var(--ceramic)]">System Status</h3>
                 </div>
                 <p className="text-sm leading-6 text-[var(--ceramic-muted)]">
-                  Firebase Auth, Firestore, and Storage are scaffolded. Add Vercel environment
-                  variables and enable Google Auth to activate the live provider.
+                  {currentUser ? (
+                    <span className="text-[var(--laser-green)] font-semibold">✓ Connected and Authenticated. Ready for resume uploads.</span>
+                  ) : (
+                    <span>Firebase Auth and Storage are integrated. Use your roll number for instant offline access or backend-synced login.</span>
+                  )}
                 </p>
               </GlassCard>
             </div>
