@@ -49,7 +49,8 @@ export default function LoginPage() {
 
     // 1. Check local offline fallback credentials
     const localMatch = people.find(
-      (p) => p.loginId?.toLowerCase() === email.trim().toLowerCase() && password === p.loginId
+      (p) => p.loginId?.toLowerCase() === email.trim().toLowerCase() && 
+             (password === p.loginId || password.trim().toUpperCase() === p.loginId?.toUpperCase())
     );
     if (localMatch) {
       const mockUser = {

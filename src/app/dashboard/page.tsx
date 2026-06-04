@@ -58,7 +58,8 @@ export default function DashboardPage() {
     
     // Offline bypass validation check
     const match = people.find(
-      (p) => p.loginId?.toLowerCase() === email.trim().toLowerCase() && password === p.loginId
+      (p) => p.loginId?.toLowerCase() === email.trim().toLowerCase() && 
+             (password === p.loginId || password.trim().toUpperCase() === p.loginId?.toUpperCase())
     );
     if (match) {
       const mockUser = {
