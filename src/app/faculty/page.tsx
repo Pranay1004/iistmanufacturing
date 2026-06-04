@@ -28,7 +28,7 @@ export default function FacultyPage() {
         </section>
 
         {/* Faculty & Staff Cards */}
-        <section className="mx-auto grid max-w-7xl gap-5 px-4 pb-12 sm:px-6 lg:grid-cols-3 lg:px-8">
+        <section className="mx-auto grid max-w-7xl gap-5 px-4 pb-12 sm:px-6 lg:grid-cols-2 lg:px-8">
           {members.map((person) => (
             <GlassCard key={person.slug} className="flex h-full flex-col">
               <div className="flex items-start gap-4">
