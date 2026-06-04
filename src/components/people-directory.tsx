@@ -22,16 +22,41 @@ export function PeopleDirectory() {
   const [cohort, setCohort] = useState("2025-2027");
   const [preview, setPreview] = useState<Person | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [dbProfiles, setDbProfiles] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    fetch("/api/profiles")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.profiles) {
+          setDbProfiles(data.profiles);
+        }
+      })
+      .catch((err) => console.error("Error loading dynamic profiles:", err));
+  }, []);
+
+  const mergedPeople = useMemo(() => {
+    return people.map((person) => {
+      const dbProfile = dbProfiles[person.slug];
+      if (dbProfile) {
+        return {
+          ...person,
+          resumeUrl: dbProfile.resumeUrl || person.resumeUrl,
+        };
+      }
+      return person;
+    });
+  }, [dbProfiles]);
 
   const filtered = useMemo(
     () =>
-      people.filter((person) => {
+      mergedPeople.filter((person) => {
         if (person.type !== type) return false;
         if (type === "student") return person.cohort === cohort;
         if (type === "phd") return person.admissionYear === cohort;
         return true;
       }),
-    [type, cohort],
+    [mergedPeople, type, cohort],
   );
 
   const availableCohorts = cohortsForType[type];
@@ -111,7 +136,7 @@ export function PeopleDirectory() {
                       "text-[10px] px-1.5 py-0.2 rounded-full font-data",
                       type === tab.value ? "bg-white/20 text-white" : "bg-[var(--panel)] text-[var(--ceramic-muted)]",
                     ].join(" ")}>
-                      {people.filter(p => p.type === tab.value).length}
+                      {mergedPeople.filter(p => p.type === tab.value).length}
                     </span>
                   </button>
                 ))}

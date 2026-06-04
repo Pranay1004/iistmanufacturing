@@ -8,6 +8,50 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Divider } from "@/components/ui/Divider";
 import { getPerson, people } from "@/lib/data";
+import admin from "firebase-admin";
+import fs from "fs";
+
+export const dynamic = "force-dynamic";
+
+const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+const storageBucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "iist-manufacturing-profile.firebasestorage.app";
+
+if (!admin.apps.length) {
+  if (serviceAccountJson) {
+    try {
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: storageBucketName,
+      });
+    } catch (e) {
+      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", e);
+    }
+  } else if (serviceAccountPath) {
+    if (serviceAccountPath.trim().startsWith("{")) {
+      try {
+        const serviceAccount = JSON.parse(serviceAccountPath);
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          storageBucket: storageBucketName,
+        });
+      } catch (e) {
+        console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS as JSON:", e);
+      }
+    } else if (fs.existsSync(serviceAccountPath)) {
+      try {
+        const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          storageBucket: storageBucketName,
+        });
+      } catch (e) {
+        console.error("Failed to read/parse GOOGLE_APPLICATION_CREDENTIALS file path:", e);
+      }
+    }
+  }
+}
 
 export function generateStaticParams() {
   return people.map((person) => ({ slug: person.slug }));
@@ -23,10 +67,28 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const person = getPerson(slug);
+  const staticPerson = getPerson(slug);
 
-  if (!person) {
+  if (!staticPerson) {
     notFound();
+  }
+
+  // Clone to avoid mutating static import in-memory
+  const person = { ...staticPerson };
+
+  // Fetch dynamic profile updates from Firestore
+  if (admin.apps.length) {
+    try {
+      const doc = await admin.firestore().collection("profiles").doc(slug).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data?.resumeUrl) {
+          person.resumeUrl = data.resumeUrl;
+        }
+      }
+    } catch (e) {
+      console.error(`Failed to fetch firestore profile for ${slug}:`, e);
+    }
   }
 
   return (

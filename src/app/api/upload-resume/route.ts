@@ -5,11 +5,16 @@ import fs from "fs";
 const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
+const storageBucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "iist-manufacturing-profile.firebasestorage.app";
+
 if (!admin.apps.length) {
   if (serviceAccountJson) {
     try {
       const serviceAccount = JSON.parse(serviceAccountJson);
-      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: storageBucketName,
+      });
     } catch (e) {
       console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", e);
     }
@@ -17,14 +22,20 @@ if (!admin.apps.length) {
     if (serviceAccountPath.trim().startsWith("{")) {
       try {
         const serviceAccount = JSON.parse(serviceAccountPath);
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          storageBucket: storageBucketName,
+        });
       } catch (e) {
         console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS as JSON:", e);
       }
     } else if (fs.existsSync(serviceAccountPath)) {
       try {
         const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          storageBucket: storageBucketName,
+        });
       } catch (e) {
         console.error("Failed to read/parse GOOGLE_APPLICATION_CREDENTIALS file path:", e);
       }
@@ -105,6 +116,39 @@ export async function POST(req: Request) {
   }
   const j = await resp.json();
   const downloadUrl = j.content && j.content.download_url ? j.content.download_url : `https://raw.githubusercontent.com/${GITHUB_REPO}/${BRANCH}/${path}`;
-  return NextResponse.json({ ok: true, downloadUrl });
+
+  // 1. Firebase Storage backup upload
+  let storageUrl = "";
+  try {
+    const bucket = admin.storage().bucket();
+    const fileRef = bucket.file(`resumes/${slug}/${filename}`);
+    await fileRef.save(buf, {
+      metadata: { contentType: "application/pdf" },
+    });
+    // Generate signed URL expiring in far-future (year 2099)
+    const [signedUrl] = await fileRef.getSignedUrl({
+      action: "read",
+      expires: "01-01-2099",
+    });
+    storageUrl = signedUrl;
+    console.log(`Firebase Storage backup completed for ${slug}: ${storageUrl}`);
+  } catch (err: any) {
+    console.error("Firebase Storage upload backup failed:", err);
+  }
+
+  // 2. Firestore document update
+  try {
+    const db = admin.firestore();
+    await db.collection("profiles").doc(slug).set({
+      resumeUrl: downloadUrl,
+      firebaseStorageUrl: storageUrl || null,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+    console.log(`Firestore profile updated for ${slug} with resumeUrl: ${downloadUrl}`);
+  } catch (err: any) {
+    console.error("Firestore write failed:", err);
+  }
+
+  return NextResponse.json({ ok: true, downloadUrl, storageUrl });
 }
 
