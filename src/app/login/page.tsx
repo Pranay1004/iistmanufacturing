@@ -66,15 +66,8 @@ export default function LoginPage() {
       setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
     } catch (err) {
       const error = err as { code?: string; message?: string };
-      if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
-        showMessage("✗ Invalid credentials. Check your roll number and password.", "error");
-      } else if (error.code === "auth/user-not-found") {
-        showMessage("✗ No account found. Contact the admin to set up your profile.", "error");
-      } else if (error.code === "auth/too-many-requests") {
-        showMessage("✗ Too many attempts. Try again later or reset your password.", "error");
-      } else {
-        showMessage(error.message || String(err), "error");
-      }
+      console.error("Login Error:", error);
+      showMessage(`✗ Sign-in failed: ${error.message || String(err)} (Code: ${error.code || "unknown"})`, "error");
     } finally {
       setIsLoading(false);
     }
@@ -111,6 +104,7 @@ export default function LoginPage() {
     let createdCount = 0;
     let existedCount = 0;
     let errorCount = 0;
+    let lastError: string | null = null;
 
     const candidates = people.filter((p) => p.loginId);
 
@@ -124,15 +118,23 @@ export default function LoginPage() {
           existedCount++;
         } else {
           console.error(`Error creating ${person.officialEmail}:`, err);
+          lastError = err.message || String(err);
           errorCount++;
         }
       }
     }
 
-    showMessage(
-      `Auth sync complete: ${createdCount} new accounts created, ${existedCount} already existed, ${errorCount} errors.`,
-      errorCount > 0 ? "error" : "success"
-    );
+    if (errorCount > 0) {
+      showMessage(
+        `Auth sync: ${createdCount} created, ${existedCount} existed, ${errorCount} errors. Last error: ${lastError}`,
+        "error"
+      );
+    } else {
+      showMessage(
+        `Auth sync complete: ${createdCount} new accounts created, ${existedCount} already existed.`,
+        "success"
+      );
+    }
     setIsSeeding(false);
   }
 
