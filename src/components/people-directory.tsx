@@ -4,6 +4,8 @@ import { useMemo, useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { people, type Person, type PersonType } from "@/lib/data";
 import { PersonCard, Portrait, ProfileActions } from "@/components/person-card";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const tabs: { label: string; value: PersonType }[] = [
   { label: "M.Tech Students", value: "student" },
@@ -25,14 +27,16 @@ export function PeopleDirectory() {
   const [dbProfiles, setDbProfiles] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetch("/api/profiles")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.profiles) {
-          setDbProfiles(data.profiles);
-        }
+    if (!db) return;
+    getDocs(collection(db, "profiles"))
+      .then((snapshot) => {
+        const profiles: Record<string, any> = {};
+        snapshot.forEach((docSnap) => {
+          profiles[docSnap.id] = docSnap.data();
+        });
+        setDbProfiles(profiles);
       })
-      .catch((err) => console.error("Error loading dynamic profiles:", err));
+      .catch((err) => console.error("Error loading dynamic profiles client-side:", err));
   }, []);
 
   const mergedPeople = useMemo(() => {

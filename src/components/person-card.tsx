@@ -1,7 +1,11 @@
+"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Download, ExternalLink, Share2, Mail } from "lucide-react";
 import type { Person } from "@/lib/data";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export function Portrait({ name, large = false }: { name: string; large?: boolean }) {
   const initials = name
@@ -61,6 +65,25 @@ export function PersonCard({
   person: Person;
   onPreview?: (person: Person) => void;
 }) {
+  const [resumeUrl, setResumeUrl] = useState(person.resumeUrl);
+
+  useEffect(() => {
+    setResumeUrl(person.resumeUrl);
+  }, [person.resumeUrl]);
+
+  useEffect(() => {
+    if (!db || person.resumeUrl) return;
+    const docRef = doc(db, "profiles", person.slug);
+    getDoc(docRef).then((snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.resumeUrl) {
+          setResumeUrl(data.resumeUrl);
+        }
+      }
+    }).catch(err => console.error("Error fetching card resume:", err));
+  }, [person.slug, person.resumeUrl]);
+
   return (
     <GlassCard 
       className="p-3 cursor-pointer hover:border-[var(--arc-blue)] transition-colors duration-200 group" 
@@ -105,9 +128,9 @@ export function PersonCard({
                 LinkedIn
               </a>
             )}
-            {person.resumeUrl ? (
+            {resumeUrl ? (
               <a
-                href={person.resumeUrl}
+                href={resumeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-8 items-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2.5 text-xs font-medium text-[var(--ceramic-muted)] hover:border-[var(--forge-amber)] hover:text-[var(--forge-amber)] transition-colors duration-200"
@@ -129,6 +152,25 @@ export function PersonCard({
 }
 
 export function ProfileActions({ person }: { person: Person }) {
+  const [resumeUrl, setResumeUrl] = useState(person.resumeUrl);
+
+  useEffect(() => {
+    setResumeUrl(person.resumeUrl);
+  }, [person.resumeUrl]);
+
+  useEffect(() => {
+    if (!db || person.resumeUrl) return;
+    const docRef = doc(db, "profiles", person.slug);
+    getDoc(docRef).then((snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.resumeUrl) {
+          setResumeUrl(data.resumeUrl);
+        }
+      }
+    }).catch(err => console.error("Error fetching actions resume:", err));
+  }, [person.slug, person.resumeUrl]);
+
   return (
     <div className="flex flex-wrap gap-2">
       <a
@@ -160,9 +202,9 @@ export function ProfileActions({ person }: { person: Person }) {
           LinkedIn
         </a>
       )}
-      {person.resumeUrl ? (
+      {resumeUrl ? (
         <a
-          href={person.resumeUrl}
+          href={resumeUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex h-10 min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-3 text-sm font-medium text-[var(--ceramic)] hover:border-[var(--forge-amber)] sm:flex-none"

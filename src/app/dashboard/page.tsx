@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { PageFrame } from "@/components/site-shell";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -143,8 +144,25 @@ export default function DashboardPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const j = await res.json();
-      if (res.ok) showMessage(`✓ Upload complete: ${j.downloadUrl}`, "success");
-      else showMessage(`✗ Error: ${j.error || JSON.stringify(j)}`, "error");
+      if (res.ok) {
+        showMessage(`✓ Upload complete: ${j.downloadUrl}`, "success");
+        // Save dynamically to Firestore client-side using Firebase SDK
+        if (db) {
+          const targetSlug = slug || currentUser.uid;
+          try {
+            await setDoc(doc(db, "profiles", targetSlug), {
+              resumeUrl: j.downloadUrl,
+              firebaseStorageUrl: j.storageUrl || null,
+              updatedAt: new Date().toISOString(),
+            }, { merge: true });
+            console.log(`Firestore updated client-side for ${targetSlug}`);
+          } catch (dbErr: any) {
+            console.error("Firestore client-side update failed:", dbErr);
+          }
+        }
+      } else {
+        showMessage(`✗ Error: ${j.error || JSON.stringify(j)}`, "error");
+      }
     } catch (err: any) {
       showMessage(err.message || String(err), "error");
     }
