@@ -423,14 +423,96 @@ people.push({
 });
 
 const currentStudents = [
-  ["aniket-balaji-parnale", "Aniket Balaji Parnale", "SC25M141", "Quality Engineering", false],
-  ["anushyanth-a", "Anushyanth A", "SC25M142", "Composite Manufacturing", false],
-  ["juveriya-sayyed", "Juveriya Sayyed", "SC25M143", "CAD-CAM and CNC", false],
-  ["lakshmi-k", "Lakshmi K", "SC25M144", "Forming Technology", false],
-  ["shivam-ajay-saraswat", "Shivam Ajay Saraswat", "SC25M145", "Welding and Joining", false],
-  ["bishodeep-sardar", "Bishodeep Sardar", "SC25M146", "Conventional Manufacturing", false],
-  ["pranay-kumar-pandey", "Pranay Kumar Pandey", "SC25M147", "Additive Manufacturing", true],
-  ["abdullah-rishad", "Abdullah Rishad", "SC25M179", "Smart Manufacturing", false],
+  {
+    slug: "aniket-balaji-parnale",
+    name: "Aniket Balaji Parnale",
+    roll: "SC25M141",
+    specialization: "Quality Engineering",
+    broadIdea: "Quality Engineering & Production Scheduling",
+    supervisor: "Dr. B. S. Girish",
+    internship: "Friction Stir Welding",
+    projectTitle: "Scheduling of Autoclave (CMSE)",
+    isAdmin: false
+  },
+  {
+    slug: "anushyanth-a",
+    name: "Anushyanth A",
+    roll: "SC25M142",
+    specialization: "Composite Manufacturing",
+    broadIdea: "AMTDC IIT Madras - AM",
+    supervisor: "Dr. Sooraj V. S",
+    internship: "AMTDC - IIT Madras",
+    projectTitle: "Repair welding of FSW joints (VSSC)",
+    isAdmin: false
+  },
+  {
+    slug: "juveriya-sayyed",
+    name: "Juveriya Sayyed",
+    roll: "SC25M143",
+    specialization: "CAD-CAM and CNC",
+    broadIdea: "VSSC - DfAM- Auxetic Structures",
+    supervisor: "Dr. Sooraj V. S",
+    internship: "VSSC - DfAM",
+    projectTitle: "CMSE - Composites",
+    isAdmin: false
+  },
+  {
+    slug: "lakshmi-k",
+    name: "Lakshmi K",
+    roll: "SC25M144",
+    specialization: "Forming Technology",
+    broadIdea: "Incremental Forming",
+    supervisor: "Dr. Chakravarthy P.",
+    internship: "Incremental Forming (IIST/VSSC)",
+    projectTitle: "High strain rate forming using shock tubes",
+    isAdmin: false
+  },
+  {
+    slug: "shivam-ajay-saraswat",
+    name: "Shivam Ajay Saraswat",
+    roll: "SC25M145",
+    specialization: "Welding and Joining",
+    broadIdea: "AMTDC IIT Madras - AM",
+    supervisor: "Dr. Sooraj V. S",
+    internship: "AMTDC - IIT Madras",
+    projectTitle: "Additive Manufacturing (IIST/LPSC/VSSC)",
+    isAdmin: false
+  },
+  {
+    slug: "bishodeep-sardar",
+    name: "Bishodeep Sardar",
+    roll: "SC25M146",
+    specialization: "Conventional Manufacturing",
+    broadIdea: "Mechanical properties and microstructure studies on gas tungsten arc welded AA2014 alloy",
+    supervisor: "Dr. Chakravarthy P.",
+    externalGuide: "Dr. Agilan (VSSC)",
+    internship: "Mechanical properties and microstructure studies on gas tungsten arc welded AA2014",
+    projectTitle: "Incremental Forming (IIST/VSSC)",
+    isAdmin: false
+  },
+  {
+    slug: "pranay-kumar-pandey",
+    name: "Pranay Kumar Pandey",
+    roll: "SC25M147",
+    specialization: "Additive Manufacturing",
+    broadIdea: "TPS Coatings",
+    supervisor: "Dr. Chakravarthy P.",
+    externalGuide: "Mr. C Venkateswaran",
+    internship: "Awaiting Inputs",
+    projectTitle: "Additive Manufacturing (IIST/LPSC/VSSC)",
+    isAdmin: true
+  },
+  {
+    slug: "abdullah-rishad",
+    name: "Abdullah Rishad",
+    roll: "SC25M179",
+    specialization: "Smart Manufacturing",
+    broadIdea: "WAAM of Titanium (L&T)",
+    supervisor: "Dr. Sooraj V. S",
+    internship: "L&T (Waiting response/sooraj sir), backup option CMSE (composites)",
+    projectTitle: "GTAW Of AL7075 and SCC Studies (IIST/VSSC)",
+    isAdmin: false
+  }
 ] as const;
 
 const outgoingStudents = [
@@ -519,32 +601,44 @@ const phdScholars = [
 ] as const;
 
 people.push(
-  ...currentStudents.map(([slug, name, roll, specialization, admin]): Person => ({
-    slug,
+  ...currentStudents.map((s: any): Person => ({
+    slug: s.slug,
     type: "student",
-    name,
-    role: `M.Tech Scholar, ${roll}`,
+    name: s.name,
+    role: `M.Tech Scholar, ${s.roll}`,
     batch: "2025-2027",
     cohort: "2025-2027",
-    specialization,
-    officialEmail: `${name.split(" ")[0].toLowerCase()}.${roll.toLowerCase()}@pg.iist.ac.in`,
-    personalEmail: `${slug.replaceAll("-", ".")}@gmail.com`,
-    portfolio: `https://${slug}.portfolio.example`,
-    linkedin: `https://www.linkedin.com/in/${slug}`,
-    loginId: roll,
+    specialization: s.specialization,
+    officialEmail: `${s.name.split(" ")[0].toLowerCase()}.${s.roll.toLowerCase()}@pg.iist.ac.in`,
+    personalEmail: `${s.slug.replaceAll("-", ".")}@gmail.com`,
+    portfolio: `https://${s.slug}.portfolio.example`,
+    linkedin: `https://www.linkedin.com/in/${s.slug}`,
+    loginId: s.roll,
     availability: "Open to internships",
-    isAdmin: admin,
-    synopsis:
-      "M.Tech Manufacturing Technology scholar building aerospace-oriented manufacturing depth through coursework, lab work, process planning, and applied project documentation.",
-    skills: [specialization, "Process planning", "Technical documentation", "Aerospace manufacturing"],
+    isAdmin: s.isAdmin,
+    supervisor: s.supervisor,
+    synopsis: `M.Tech Manufacturing Technology scholar building aerospace-oriented manufacturing depth through coursework, lab work, process planning, and applied project documentation. Specializing in ${s.specialization} with active research focus on ${s.broadIdea || s.specialization}.`,
+    skills: [s.specialization, "Process planning", "Technical documentation", "Aerospace manufacturing"],
     skillGroups: {
-      Core: [specialization, "Materials and processes", "Design for manufacturing"],
+      Core: [s.specialization, "Materials and processes", "Design for manufacturing"],
       Tools: ["CAD", "Process sheets", "Inspection planning"],
       Professional: ["Technical writing", "Project reviews", "Presentation"],
     },
-    projects: studentProjects,
+    projects: [
+      {
+        title: s.projectTitle,
+        summary: `M.Tech project work: ${s.projectTitle}. Guided by ${s.supervisor}${s.hasOwnProperty('externalGuide') ? ` and ${(s as any).externalGuide}` : ""}.`,
+        status: "Ongoing",
+      }
+    ],
     seekingRoles: ["COMPOSITE ENGINEER", "WELDING ENGINEER", "Additive Manufacturing Engineer", "Production Engineer", "Quality Engineer", "Operations", "PGET", "Smart Manufacturing Engineer"],
-    profileSections: defaultStudentSections,
+    profileSections: [
+      {
+        title: "Summer Internship",
+        body: `Summer Internship Project: ${s.internship}.`
+      },
+      ...defaultStudentSections.filter(sec => sec.title !== "Summary")
+    ],
   })),
   ...outgoingStudents.map((student): Person => ({
     slug: student.slug,
