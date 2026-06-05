@@ -49,7 +49,7 @@ export default function LoginPage() {
 
     // 1. Check local offline fallback credentials
     const localMatch = people.find(
-      (p) => p.loginId?.toLowerCase() === email.trim().toLowerCase() && 
+      (p) => (p.loginId?.toLowerCase() === email.trim().toLowerCase() || p.officialEmail.toLowerCase() === email.trim().toLowerCase()) && 
              (password === p.loginId || password.trim().toUpperCase() === p.loginId?.toUpperCase())
     );
     if (localMatch) {
