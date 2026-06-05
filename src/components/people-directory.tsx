@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { people, type Person, type PersonType } from "@/lib/data";
-import { PersonCard, Portrait, ProfileActions } from "@/components/person-card";
+import { PersonCard, Portrait, ProfileActions, formatResumeUrl } from "@/components/person-card";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -45,10 +45,13 @@ export function PeopleDirectory() {
       if (dbProfile) {
         return {
           ...person,
-          resumeUrl: dbProfile.resumeUrl || person.resumeUrl,
+          resumeUrl: formatResumeUrl(dbProfile.resumeUrl) || formatResumeUrl(person.resumeUrl),
         };
       }
-      return person;
+      return {
+        ...person,
+        resumeUrl: formatResumeUrl(person.resumeUrl),
+      };
     });
   }, [dbProfiles]);
 

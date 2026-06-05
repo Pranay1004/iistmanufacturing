@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { PageFrame } from "@/components/site-shell";
-import { Portrait, ProfileActions } from "@/components/person-card";
+import { Portrait, ProfileActions, formatResumeUrl } from "@/components/person-card";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -32,7 +32,7 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
             skills: data.skills || prev.skills,
             projects: data.projects || prev.projects,
             profileSections: data.profileSections || prev.profileSections,
-            resumeUrl: data.resumeUrl || prev.resumeUrl,
+            resumeUrl: formatResumeUrl(data.resumeUrl) || formatResumeUrl(prev.resumeUrl),
           }));
         }
       })

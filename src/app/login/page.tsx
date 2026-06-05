@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, sendPasswordResetEmail, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { PageFrame } from "@/components/site-shell";
@@ -36,6 +36,14 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"info" | "error" | "success">("info");
+
+  useEffect(() => {
+    const isMock = !!localStorage.getItem("mock-user");
+    const isFirebase = localStorage.getItem("firebase-logged-in") === "true";
+    if (isMock || isFirebase) {
+      window.location.href = "/dashboard";
+    }
+  }, []);
 
   function showMessage(text: string, type: "info" | "error" | "success" = "info") {
     setMessage(text);
@@ -87,6 +95,7 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, emailToUse, password);
       // Clear mock session just in case
       localStorage.removeItem("mock-user");
+      localStorage.setItem("firebase-logged-in", "true");
       showMessage(`✓ Signed in as ${emailToUse}. Redirecting to dashboard...`, "success");
       setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
     } catch (err) {

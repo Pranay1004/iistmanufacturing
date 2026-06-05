@@ -56,10 +56,12 @@ export default function DashboardPage() {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         if (user) {
           setCurrentUser(user);
+          localStorage.setItem("firebase-logged-in", "true");
           const match = people.find((p) => p.officialEmail === user.email);
           if (match) setSlug(match.slug);
         } else if (!localStorage.getItem("mock-user")) {
           setCurrentUser(null);
+          localStorage.removeItem("firebase-logged-in");
         }
       });
       return () => unsubscribe();
@@ -132,6 +134,7 @@ export default function DashboardPage() {
       }
       const cred = await signInWithEmailAndPassword(auth, emailToUse, password);
       localStorage.removeItem("mock-user"); // Clear offline session if online succeeds
+      localStorage.setItem("firebase-logged-in", "true");
       setCurrentUser(cred.user);
       showMessage(`✓ Authenticated as ${emailToUse}`, "success");
       const m = people.find((p) => p.officialEmail === emailToUse);
@@ -143,6 +146,7 @@ export default function DashboardPage() {
 
   async function signOutUser() {
     localStorage.removeItem("mock-user");
+    localStorage.removeItem("firebase-logged-in");
     if (auth) {
       await signOut(auth);
     }

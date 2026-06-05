@@ -115,7 +115,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "GitHub upload failed", detail: text }, { status: 500 });
   }
   const j = await resp.json();
-  const downloadUrl = j.content && j.content.download_url ? j.content.download_url : `https://raw.githubusercontent.com/${GITHUB_REPO}/${BRANCH}/${path}`;
+  const downloadUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_REPO}@${BRANCH}/${path}`;
 
   // 1. Firebase Storage backup upload
   let storageUrl = "";

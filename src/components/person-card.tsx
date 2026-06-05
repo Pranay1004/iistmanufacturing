@@ -7,6 +7,17 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
+export function formatResumeUrl(url: string | undefined): string | undefined {
+  if (!url) return url;
+  const githubRawRegex = /^https?:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+)$/;
+  const match = url.match(githubRawRegex);
+  if (match) {
+    const [_, owner, repo, branch, path] = match;
+    return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`;
+  }
+  return url;
+}
+
 export function Portrait({ name, large = false }: { name: string; large?: boolean }) {
   const initials = name
     .replace("Dr.", "")
@@ -65,10 +76,10 @@ export function PersonCard({
   person: Person;
   onPreview?: (person: Person) => void;
 }) {
-  const [resumeUrl, setResumeUrl] = useState(person.resumeUrl);
+  const [resumeUrl, setResumeUrl] = useState(formatResumeUrl(person.resumeUrl));
 
   useEffect(() => {
-    setResumeUrl(person.resumeUrl);
+    setResumeUrl(formatResumeUrl(person.resumeUrl));
   }, [person.resumeUrl]);
 
   useEffect(() => {
@@ -78,7 +89,7 @@ export function PersonCard({
       if (snap.exists()) {
         const data = snap.data();
         if (data.resumeUrl) {
-          setResumeUrl(data.resumeUrl);
+          setResumeUrl(formatResumeUrl(data.resumeUrl));
         }
       }
     }).catch(err => console.error("Error fetching card resume:", err));
@@ -152,10 +163,10 @@ export function PersonCard({
 }
 
 export function ProfileActions({ person }: { person: Person }) {
-  const [resumeUrl, setResumeUrl] = useState(person.resumeUrl);
+  const [resumeUrl, setResumeUrl] = useState(formatResumeUrl(person.resumeUrl));
 
   useEffect(() => {
-    setResumeUrl(person.resumeUrl);
+    setResumeUrl(formatResumeUrl(person.resumeUrl));
   }, [person.resumeUrl]);
 
   useEffect(() => {
@@ -165,7 +176,7 @@ export function ProfileActions({ person }: { person: Person }) {
       if (snap.exists()) {
         const data = snap.data();
         if (data.resumeUrl) {
-          setResumeUrl(data.resumeUrl);
+          setResumeUrl(formatResumeUrl(data.resumeUrl));
         }
       }
     }).catch(err => console.error("Error fetching actions resume:", err));
