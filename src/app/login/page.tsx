@@ -58,7 +58,7 @@ export default function LoginPage() {
         email: localMatch.officialEmail,
         displayName: localMatch.name,
       };
-      sessionStorage.setItem("mock-user", JSON.stringify(mockUser));
+      localStorage.setItem("mock-user", JSON.stringify(mockUser));
       showMessage(`✓ Authenticated locally as ${localMatch.officialEmail} (Offline Mode). Redirecting...`, "success");
       setIsLoading(false);
       setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
@@ -86,7 +86,7 @@ export default function LoginPage() {
       }
       await signInWithEmailAndPassword(auth, emailToUse, password);
       // Clear mock session just in case
-      sessionStorage.removeItem("mock-user");
+      localStorage.removeItem("mock-user");
       showMessage(`✓ Signed in as ${emailToUse}. Redirecting to dashboard...`, "success");
       setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
     } catch (err) {

@@ -1,13 +1,15 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { PageFrame } from "@/components/site-shell";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { MetalButton } from "@/components/ui/MetalButton";
+import { Divider } from "@/components/ui/Divider";
 import { KeyRound, Upload, ShieldCheck, Terminal } from "lucide-react";
 import { people } from "@/lib/data";
 
@@ -20,14 +22,24 @@ export default function DashboardPage() {
   const [messageType, setMessageType] = useState<"info" | "error" | "success">("info");
   const [currentUser, setCurrentUser] = useState<any>(null);
 
+  // Profile Editor States
+  const [synopsis, setSynopsis] = useState("");
+  const [personalEmail, setPersonalEmail] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [portfolio, setPortfolio] = useState("");
+  const [skillsText, setSkillsText] = useState("");
+  const [projects, setProjects] = useState<any[]>([]);
+  const [profileSections, setProfileSections] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
   function showMessage(text: string, type: "info" | "error" | "success" = "info") {
     setMessage(text);
     setMessageType(type);
   }
 
   useEffect(() => {
-    // 1. Check for active mock user session
-    const savedMock = sessionStorage.getItem("mock-user");
+    // 1. Check for active mock user session in localStorage
+    const savedMock = localStorage.getItem("mock-user");
     if (savedMock) {
       try {
         const u = JSON.parse(savedMock);
@@ -46,13 +58,45 @@ export default function DashboardPage() {
           setCurrentUser(user);
           const match = people.find((p) => p.officialEmail === user.email);
           if (match) setSlug(match.slug);
-        } else if (!sessionStorage.getItem("mock-user")) {
+        } else if (!localStorage.getItem("mock-user")) {
           setCurrentUser(null);
         }
       });
       return () => unsubscribe();
     }
   }, []);
+
+  // Sync profile details when slug changes
+  useEffect(() => {
+    if (!currentUser || !slug) return;
+    const match = people.find((p) => p.slug === slug);
+    if (match) {
+      setSynopsis(match.synopsis || "");
+      setPersonalEmail(match.personalEmail || "");
+      setLinkedin(match.linkedin || "");
+      setPortfolio(match.portfolio || "");
+      setSkillsText(match.skills ? match.skills.join(", ") : "");
+      setProjects(match.projects || []);
+      setProfileSections(match.profileSections || []);
+    }
+
+    if (db) {
+      getDoc(doc(db, "profiles", slug))
+        .then((snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data.synopsis !== undefined) setSynopsis(data.synopsis);
+            if (data.personalEmail !== undefined) setPersonalEmail(data.personalEmail);
+            if (data.linkedin !== undefined) setLinkedin(data.linkedin);
+            if (data.portfolio !== undefined) setPortfolio(data.portfolio);
+            if (data.skills !== undefined) setSkillsText(data.skills.join(", "));
+            if (data.projects !== undefined) setProjects(data.projects);
+            if (data.profileSections !== undefined) setProfileSections(data.profileSections);
+          }
+        })
+        .catch((err) => console.error("Error loading profile details in editor:", err));
+    }
+  }, [currentUser, slug]);
 
   async function signIn() {
     setMessage("");
@@ -68,7 +112,7 @@ export default function DashboardPage() {
         email: match.officialEmail,
         displayName: match.name,
       };
-      sessionStorage.setItem("mock-user", JSON.stringify(mockUser));
+      localStorage.setItem("mock-user", JSON.stringify(mockUser));
       setCurrentUser(mockUser);
       setSlug(match.slug);
       showMessage(`✓ Authenticated locally as ${match.officialEmail} (Offline Mode)`, "success");
@@ -87,7 +131,7 @@ export default function DashboardPage() {
         }
       }
       const cred = await signInWithEmailAndPassword(auth, emailToUse, password);
-      sessionStorage.removeItem("mock-user"); // Clear offline session if online succeeds
+      localStorage.removeItem("mock-user"); // Clear offline session if online succeeds
       setCurrentUser(cred.user);
       showMessage(`✓ Authenticated as ${emailToUse}`, "success");
       const m = people.find((p) => p.officialEmail === emailToUse);
@@ -98,7 +142,7 @@ export default function DashboardPage() {
   }
 
   async function signOutUser() {
-    sessionStorage.removeItem("mock-user");
+    localStorage.removeItem("mock-user");
     if (auth) {
       await signOut(auth);
     }
@@ -165,6 +209,39 @@ export default function DashboardPage() {
       }
     } catch (err: any) {
       showMessage(err.message || String(err), "error");
+    }
+  }
+
+  async function saveProfile() {
+    if (!currentUser || !slug) return showMessage("Sign in first", "error");
+    if (!db) return showMessage("Firestore not configured", "error");
+
+    setIsSaving(true);
+    showMessage("Saving profile...", "info");
+
+    try {
+      const parsedSkills = skillsText
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      await setDoc(doc(db, "profiles", slug), {
+        synopsis,
+        personalEmail: personalEmail.trim(),
+        linkedin: linkedin.trim(),
+        portfolio: portfolio.trim(),
+        skills: parsedSkills,
+        projects,
+        profileSections,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+
+      showMessage("✓ Profile saved successfully!", "success");
+    } catch (err: any) {
+      console.error("Save profile error:", err);
+      showMessage(`✗ Save failed: ${err.message || String(err)}`, "error");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -314,7 +391,7 @@ export default function DashboardPage() {
                 </div>
                 <p className="text-sm leading-6 text-[var(--ceramic-muted)]">
                   {currentUser ? (
-                    <span className="text-[var(--laser-green)] font-semibold">✓ Connected and Authenticated. Ready for resume uploads.</span>
+                    <span className="text-[var(--laser-green)] font-semibold">✓ Connected and Authenticated. Ready for profile updates.</span>
                   ) : (
                     <span>Firebase Auth and Storage are integrated. Use your roll number for instant offline access or backend-synced login.</span>
                   )}
@@ -323,6 +400,238 @@ export default function DashboardPage() {
             </div>
           </ScrollReveal>
         </div>
+
+        {/* ─── Profile Editor (Only visible when logged in and active profile exists) ─── */}
+        {currentUser && slug && (
+          <ScrollReveal className="mt-8">
+            <GlassCard hover={false} variant="featured" accent="amber">
+              <div className="mb-6 border-b border-[var(--edge)] pb-4">
+                <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Edit Profile & Custom Sections</h2>
+                <p className="text-sm text-[var(--ceramic-muted)]">
+                  Customize your synopsis, edit contact links, manage skills, list projects, and add unlimited custom profile sections.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Basic Info Row */}
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
+                      Personal Email
+                    </label>
+                    <input
+                      value={personalEmail}
+                      onChange={(e) => setPersonalEmail(e.target.value)}
+                      className="input-metal"
+                      placeholder="e.g. you@gmail.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
+                      LinkedIn Profile URL
+                    </label>
+                    <input
+                      value={linkedin}
+                      onChange={(e) => setLinkedin(e.target.value)}
+                      className="input-metal"
+                      placeholder="e.g. https://linkedin.com/in/username"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
+                      Portfolio URL
+                    </label>
+                    <input
+                      value={portfolio}
+                      onChange={(e) => setPortfolio(e.target.value)}
+                      className="input-metal"
+                      placeholder="e.g. https://yourportfolio.me"
+                    />
+                  </div>
+                </div>
+
+                {/* Synopsis / Bio */}
+                <div>
+                  <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
+                    Synopsis / Short Biography
+                  </label>
+                  <textarea
+                    value={synopsis}
+                    onChange={(e) => setSynopsis(e.target.value)}
+                    className="input-metal min-h-[100px] py-2"
+                    placeholder="Write a brief overview of your academic focus, achievements, and research interests..."
+                  />
+                </div>
+
+                {/* Skills */}
+                <div>
+                  <label className="block font-data text-[11px] uppercase tracking-[0.14em] text-[var(--ceramic-muted)] mb-1.5">
+                    Skills (Comma Separated)
+                  </label>
+                  <input
+                    value={skillsText}
+                    onChange={(e) => setSkillsText(e.target.value)}
+                    className="input-metal"
+                    placeholder="e.g. Additive Manufacturing, Process planning, SolidWorks, Technical writing"
+                  />
+                  <span className="text-[10px] text-[var(--ceramic-muted)] mt-1 block">
+                    Separate your skills with commas. They will automatically be displayed as tags on your profile.
+                  </span>
+                </div>
+
+                {/* Projects Section */}
+                <div>
+                  <Divider className="my-5" />
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display text-lg font-bold text-[var(--ceramic)]">Demonstrated Projects</h3>
+                    <button
+                      type="button"
+                      onClick={() => setProjects([...projects, { title: "", summary: "", status: "Ongoing" }])}
+                      className="text-xs font-semibold text-[var(--arc-blue)] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      ＋ Add Project
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {projects.map((project, idx) => (
+                      <GlassCard key={idx} variant="compact" className="relative p-4 border border-[var(--edge)] bg-[var(--void)]">
+                        <div className="flex justify-between items-start mb-3 gap-2">
+                          <span className="font-data text-[10px] uppercase text-[var(--ceramic-muted)]">Project #{idx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => setProjects(projects.filter((_, i) => i !== idx))}
+                            className="text-xs font-semibold text-[var(--stress-red)] hover:underline cursor-pointer"
+                          >
+                            Remove Project
+                          </button>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-3 mb-3">
+                          <div className="sm:col-span-2">
+                            <label className="block font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1">Project Title</label>
+                            <input
+                              value={project.title}
+                              onChange={(e) =>
+                                setProjects(projects.map((p, i) => (i === idx ? { ...p, title: e.target.value } : p)))
+                              }
+                              className="input-metal"
+                              placeholder="e.g. Design of Symmetric Mesh Structure"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1">Status</label>
+                            <select
+                              value={project.status}
+                              onChange={(e) =>
+                                setProjects(projects.map((p, i) => (i === idx ? { ...p, status: e.target.value } : p)))
+                              }
+                              className="input-metal bg-[var(--void-deep)]"
+                            >
+                              <option value="Concept">Concept</option>
+                              <option value="Ongoing">Ongoing</option>
+                              <option value="Completed">Completed</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1">Summary</label>
+                          <textarea
+                            value={project.summary}
+                            onChange={(e) =>
+                              setProjects(projects.map((p, i) => (i === idx ? { ...p, summary: e.target.value } : p)))
+                            }
+                            className="input-metal min-h-[60px] py-1.5"
+                            placeholder="Provide a brief summary of the project goals, processes used, and results obtained..."
+                          />
+                        </div>
+                      </GlassCard>
+                    ))}
+                    {projects.length === 0 && (
+                      <p className="text-xs text-[var(--ceramic-muted)] italic select-none">No custom projects added yet.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Profile Sections */}
+                <div>
+                  <Divider className="my-5" />
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display text-lg font-bold text-[var(--ceramic)]">Custom Profile Sections</h3>
+                    <button
+                      type="button"
+                      onClick={() => setProfileSections([...profileSections, { title: "", body: "" }])}
+                      className="text-xs font-semibold text-[var(--arc-blue)] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      ＋ Add Custom Section
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {profileSections.map((section, idx) => (
+                      <GlassCard key={idx} variant="compact" className="p-4 border border-[var(--edge)] bg-[var(--void)]">
+                        <div className="flex justify-between items-start mb-3 gap-2">
+                          <span className="font-data text-[10px] uppercase text-[var(--ceramic-muted)]">Custom Section #{idx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => setProfileSections(profileSections.filter((_, i) => i !== idx))}
+                            className="text-xs font-semibold text-[var(--stress-red)] hover:underline cursor-pointer"
+                          >
+                            Remove Section
+                          </button>
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="block font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1">Section Title</label>
+                          <input
+                            value={section.title}
+                            onChange={(e) =>
+                              setProfileSections(
+                                profileSections.map((s, i) => (i === idx ? { ...s, title: e.target.value } : s))
+                              )
+                            }
+                            className="input-metal"
+                            placeholder="e.g. Publications, Academic Awards, Research Interests"
+                          />
+                         </div>
+
+                         <div>
+                           <label className="block font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] mb-1">Body Content</label>
+                           <textarea
+                             value={section.body}
+                             onChange={(e) =>
+                               setProfileSections(
+                                 profileSections.map((s, i) => (i === idx ? { ...s, body: e.target.value } : s))
+                               )
+                             }
+                             className="input-metal min-h-[100px] py-1.5"
+                             placeholder="Enter section content here..."
+                           />
+                         </div>
+                       </GlassCard>
+                     ))}
+                     {profileSections.length === 0 && (
+                       <p className="text-xs text-[var(--ceramic-muted)] italic select-none">No custom sections added yet.</p>
+                     )}
+                   </div>
+                 </div>
+
+                 {/* Save Button */}
+                 <div className="pt-4 border-t border-[var(--edge)] mt-6 flex justify-end">
+                   <button
+                     type="button"
+                     onClick={saveProfile}
+                     disabled={isSaving}
+                     className="inline-flex h-11 items-center gap-2 rounded-lg bg-[var(--forge-amber)] px-6 text-sm font-semibold text-white hover:brightness-90 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md"
+                   >
+                     {isSaving ? "Saving changes..." : "Save Profile Details"}
+                   </button>
+                 </div>
+               </div>
+             </GlassCard>
+           </ScrollReveal>
+         )}
 
         {/* ─── Terminal Message Output ─── */}
         {message && (
