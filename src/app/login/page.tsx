@@ -36,6 +36,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"info" | "error" | "success">("info");
+  const [firebaseAttempts, setFirebaseAttempts] = useState(0);
+  const [firebaseCooldownUntil, setFirebaseCooldownUntil] = useState(0);
 
   useEffect(() => {
     const isMock = !!localStorage.getItem("mock-user");
@@ -55,53 +57,105 @@ export default function LoginPage() {
     setIsLoading(true);
     setMessage("");
 
-    // 1. Check local offline fallback credentials
-    const localMatch = people.find(
-      (p) => (p.loginId?.toLowerCase() === email.trim().toLowerCase() || p.officialEmail.toLowerCase() === email.trim().toLowerCase()) && 
-             (password === p.loginId || password.trim().toUpperCase() === p.loginId?.toUpperCase())
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    // 1. Check if this looks like a roll number login (not an email)
+    const isRollNumberInput = !trimmedEmail.includes("@");
+    const knownPerson = people.find(
+      (p) => p.loginId?.toLowerCase() === trimmedEmail || p.officialEmail.toLowerCase() === trimmedEmail
     );
-    if (localMatch) {
-      const mockUser = {
-        uid: localMatch.slug,
-        email: localMatch.officialEmail,
-        displayName: localMatch.name,
-      };
-      localStorage.setItem("mock-user", JSON.stringify(mockUser));
-      showMessage(`✓ Authenticated locally as ${localMatch.officialEmail} (Offline Mode). Redirecting...`, "success");
+
+    // 2. LOCAL AUTH — primary path for all roll-number logins
+    if (knownPerson && knownPerson.loginId) {
+      const passwordMatches = 
+        trimmedPassword === knownPerson.loginId ||
+        trimmedPassword.toUpperCase() === knownPerson.loginId.toUpperCase();
+
+      if (passwordMatches) {
+        const mockUser = {
+          uid: knownPerson.slug,
+          email: knownPerson.officialEmail,
+          displayName: knownPerson.name,
+        };
+        localStorage.setItem("mock-user", JSON.stringify(mockUser));
+        showMessage(`✓ Authenticated as ${knownPerson.officialEmail}. Redirecting...`, "success");
+        setIsLoading(false);
+        setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
+        return;
+      } else {
+        // Roll number recognized but wrong password — DON'T fall through to Firebase
+        setIsLoading(false);
+        showMessage(
+          `✗ Incorrect password for ${knownPerson.name}. Your initial password is your roll number (e.g. ${knownPerson.loginId}). If you changed it, use Forgot Password.`,
+          "error"
+        );
+        return;
+      }
+    }
+
+    // 3. For roll number inputs that don't match any known person
+    if (isRollNumberInput && !knownPerson) {
       setIsLoading(false);
-      setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
+      showMessage(
+        `✗ Roll number "${email.trim()}" not found in the directory. Check for typos or contact the admin.`,
+        "error"
+      );
       return;
     }
 
-    // 2. Check Firebase configuration
+    // 4. FIREBASE AUTH — only for email-based logins (not roll numbers)
     if (!auth) {
       setIsLoading(false);
       return showMessage("Firebase not configured — environment variables not set.", "error");
     }
 
-    // 3. Fallback to Firebase Sign In
+    // Client-side rate-limit guard
+    const now = Date.now();
+    if (now < firebaseCooldownUntil) {
+      const waitSec = Math.ceil((firebaseCooldownUntil - now) / 1000);
+      setIsLoading(false);
+      return showMessage(
+        `⏳ Too many attempts. Please wait ${waitSec}s before trying again.`,
+        "error"
+      );
+    }
+
     try {
-      let emailToUse = email.trim();
-      if (!emailToUse.includes("@")) {
-        const match = people.find(
-          (p) => p.loginId?.toLowerCase() === emailToUse.toLowerCase()
-        );
-        if (match) {
-          emailToUse = match.officialEmail;
-        } else {
-          emailToUse = `${emailToUse.toLowerCase()}@pg.iist.ac.in`;
-        }
-      }
-      await signInWithEmailAndPassword(auth, emailToUse, password);
-      // Clear mock session just in case
+      await signInWithEmailAndPassword(auth, trimmedEmail, password);
       localStorage.removeItem("mock-user");
       localStorage.setItem("firebase-logged-in", "true");
-      showMessage(`✓ Signed in as ${emailToUse}. Redirecting to dashboard...`, "success");
+      setFirebaseAttempts(0);
+      showMessage(`✓ Signed in as ${trimmedEmail}. Redirecting to dashboard...`, "success");
       setTimeout(() => { window.location.href = "/dashboard"; }, 1200);
     } catch (err) {
       const error = err as { code?: string; message?: string };
       console.error("Login Error:", error);
-      showMessage(`✗ Sign-in failed: ${error.message || String(err)} (Code: ${error.code || "unknown"})`, "error");
+
+      if (error.code === "auth/too-many-requests") {
+        // Exponential backoff: 30s, 60s, 120s, 240s...
+        const backoffMs = Math.min(30000 * Math.pow(2, firebaseAttempts), 300000);
+        setFirebaseCooldownUntil(Date.now() + backoffMs);
+        setFirebaseAttempts((prev) => prev + 1);
+        showMessage(
+          `✗ Firebase has temporarily blocked this account due to too many failed attempts. Wait ${Math.ceil(backoffMs / 1000)}s, then try again. Tip: Use your roll number as both username AND password for instant offline login.`,
+          "error"
+        );
+      } else if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
+        setFirebaseAttempts((prev) => prev + 1);
+        if (firebaseAttempts >= 3) {
+          const backoffMs = 30000;
+          setFirebaseCooldownUntil(Date.now() + backoffMs);
+          showMessage(
+            `✗ Multiple failed attempts. Cooling down for 30s to prevent lockout. Use Forgot Password to reset, or try your roll number for offline access.`,
+            "error"
+          );
+        } else {
+          showMessage(`✗ Invalid email or password. Attempts: ${firebaseAttempts + 1}/4 before cooldown.`, "error");
+        }
+      } else {
+        showMessage(`✗ Sign-in failed: ${error.message || String(err)}`, "error");
+      }
     } finally {
       setIsLoading(false);
     }

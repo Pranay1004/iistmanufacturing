@@ -38,6 +38,14 @@ vercel.env
 # secrets & keys
 *.api
 bedrock.api
+*.key
+*.p12
+*.jks
+*.pfx
+service-account*.json
+*-credentials.json
+*serviceAccountKey*.json
+*.secret
 
 # vercel
 .vercel

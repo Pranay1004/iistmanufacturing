@@ -524,6 +524,10 @@ const outgoingStudents = [
     personalEmail: "arunbinu2001@gmail.com",
     officialEmail: "arun.sc24m021@pg.iist.ac.in",
     linkedin: "https://linkedin.com/in/arun-binu-959284207",
+    internship: "Optimization of Process Parameters for Powder Bed Fusion of H13 Steel",
+    internalGuide: "Dr. B S Girish",
+    placedAt: "Textron India Pvt. Ltd.",
+    placedRole: "Engineer 1",
   },
   {
     slug: "pushpal-das",
@@ -533,6 +537,10 @@ const outgoingStudents = [
     personalEmail: "pushpaldas08@gmail.com",
     officialEmail: "pushpal.sc24m022@pg.iist.ac.in",
     linkedin: "https://linkedin.com/in/pushpal-das-5b3018182",
+    internship: "Study on Partial Vacuum Electron Welding and Investigation of HAZ Brittle Failure of Electron Welded ESR modified 15CDV6",
+    internalGuide: "Dr. P Chakravarthy",
+    placedAt: "Bharat Electronics Ltd.",
+    placedRole: "Probationary Engineer",
   },
   {
     slug: "naisha-muhammed",
@@ -542,6 +550,10 @@ const outgoingStudents = [
     personalEmail: "naishacadd@gmail.com",
     officialEmail: "naisha.sc24m023@pg.iist.ac.in",
     linkedin: "https://linkedin.com/in/naisha-muhammed",
+    internship: "Wire Arc Additive Manufacturing of Mild Steel",
+    internalGuide: "Dr. P Chakravarthy",
+    placedAt: "Opting for higher studies",
+    placedRole: undefined,
   },
   {
     slug: "t-v-divya",
@@ -551,6 +563,10 @@ const outgoingStudents = [
     personalEmail: "divyarayar123@gmail.com",
     officialEmail: "divya.sc24m024@pg.iist.ac.in",
     linkedin: "https://linkedin.com/in/divya-t-v-0802771b2",
+    internship: "Abrasive Flow Finishing",
+    internalGuide: "Dr. B S Girish",
+    placedAt: "Solar Defence",
+    placedRole: "PGT",
   },
   {
     slug: "buddha-sai-dinesh",
@@ -560,6 +576,10 @@ const outgoingStudents = [
     personalEmail: "dbs20806@gmail.com",
     officialEmail: "dinesh.sc24m025@pg.iist.ac.in",
     linkedin: undefined,
+    internship: "Environmental Cracking Resistance of High Strength Low Alloy Steels in 3.5% NaCl Solution, using Compact Tension Specimens",
+    internalGuide: "Dr. V S Sooraj",
+    placedAt: "Agnikul Cosmos",
+    placedRole: "Associate - E",
   },
   {
     slug: "gayathri-v-krishna",
@@ -569,6 +589,10 @@ const outgoingStudents = [
     personalEmail: "gayathri.vkrish2000@gmail.com",
     officialEmail: "gayathri.sc24m026@pg.iist.ac.in",
     linkedin: "https://linkedin.com/in/gayathri-v-krishna",
+    internship: "Studies on Wire Arc Additive Manufacturing of AA2319 Al-Cu Alloy",
+    internalGuide: "Dr. V S Sooraj",
+    placedAt: "IIT Madras",
+    placedRole: "PhD Offer - July 2026",
   },
   {
     slug: "p-j-arjun",
@@ -578,6 +602,10 @@ const outgoingStudents = [
     personalEmail: "aaromalpj@gmail.com",
     officialEmail: "arjun.sc24m027@pg.iist.ac.in",
     linkedin: "https://linkedin.com/in/p-j-arjun-1036b01b7",
+    internship: "Preliminary Insights into the Comparative Behavior of Titanium Alloy Ti-6Al-4V with and without Boron Addition Produced by Laser Powder Bed Fusion",
+    internalGuide: "Dr. V S Sooraj",
+    placedAt: "Bharat Electronics Ltd.",
+    placedRole: "Probationary Engineer",
   },
 ] as const;
 

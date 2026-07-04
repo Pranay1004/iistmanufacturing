@@ -12,6 +12,7 @@ import { MetalButton } from "@/components/ui/MetalButton";
 import { Divider } from "@/components/ui/Divider";
 import { KeyRound, Upload, ShieldCheck, Terminal } from "lucide-react";
 import { people } from "@/lib/data";
+import { sanitizeInput, isValidEmail, isValidUrl, validateFileUpload } from "@/lib/security";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
@@ -102,45 +103,67 @@ export default function DashboardPage() {
 
   async function signIn() {
     setMessage("");
-    
-    // Offline bypass validation check
-    const match = people.find(
-      (p) => (p.loginId?.toLowerCase() === email.trim().toLowerCase() || p.officialEmail.toLowerCase() === email.trim().toLowerCase()) && 
-             (password === p.loginId || password.trim().toUpperCase() === p.loginId?.toUpperCase())
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    // 1. Check if this is a known roll number or email
+    const knownPerson = people.find(
+      (p) => p.loginId?.toLowerCase() === trimmedEmail || p.officialEmail.toLowerCase() === trimmedEmail
     );
-    if (match) {
-      const mockUser = {
-        uid: match.slug,
-        email: match.officialEmail,
-        displayName: match.name,
-      };
-      localStorage.setItem("mock-user", JSON.stringify(mockUser));
-      setCurrentUser(mockUser);
-      setSlug(match.slug);
-      showMessage(`✓ Authenticated locally as ${match.officialEmail} (Offline Mode)`, "success");
+    const isRollNumberInput = !trimmedEmail.includes("@");
+
+    // 2. LOCAL AUTH — primary path for known users
+    if (knownPerson && knownPerson.loginId) {
+      const passwordMatches =
+        trimmedPassword === knownPerson.loginId ||
+        trimmedPassword.toUpperCase() === knownPerson.loginId.toUpperCase();
+
+      if (passwordMatches) {
+        const mockUser = {
+          uid: knownPerson.slug,
+          email: knownPerson.officialEmail,
+          displayName: knownPerson.name,
+        };
+        localStorage.setItem("mock-user", JSON.stringify(mockUser));
+        setCurrentUser(mockUser);
+        setSlug(knownPerson.slug);
+        showMessage(`✓ Authenticated as ${knownPerson.officialEmail}`, "success");
+        return;
+      } else {
+        showMessage(
+          `✗ Incorrect password for ${knownPerson.name}. Your initial password is your roll number (${knownPerson.loginId}). Use Forgot Password if you changed it.`,
+          "error"
+        );
+        return;
+      }
+    }
+
+    // 3. Unknown roll number
+    if (isRollNumberInput && !knownPerson) {
+      showMessage(`✗ Roll number "${email.trim()}" not found in the directory.`, "error");
       return;
     }
 
+    // 4. FIREBASE AUTH — only for email-based logins
     if (!auth) return showMessage("Firebase not configured — add environment variables to enable.", "error");
     try {
-      let emailToUse = email.trim();
-      if (!emailToUse.includes("@")) {
-        const candidate = people.find((p) => p.loginId?.toLowerCase() === emailToUse.toLowerCase());
-        if (candidate) {
-          emailToUse = candidate.officialEmail;
-        } else {
-          emailToUse = `${emailToUse.toLowerCase()}@pg.iist.ac.in`;
-        }
-      }
-      const cred = await signInWithEmailAndPassword(auth, emailToUse, password);
-      localStorage.removeItem("mock-user"); // Clear offline session if online succeeds
+      const cred = await signInWithEmailAndPassword(auth, trimmedEmail, password);
+      localStorage.removeItem("mock-user");
       localStorage.setItem("firebase-logged-in", "true");
       setCurrentUser(cred.user);
-      showMessage(`✓ Authenticated as ${emailToUse}`, "success");
-      const m = people.find((p) => p.officialEmail === emailToUse);
+      showMessage(`✓ Authenticated as ${trimmedEmail}`, "success");
+      const m = people.find((p) => p.officialEmail === trimmedEmail);
       if (m) setSlug(m.slug);
     } catch (err: any) {
-      showMessage(err.message || String(err), "error");
+      if (err.code === "auth/too-many-requests") {
+        showMessage(
+          "✗ Too many failed attempts — Firebase has temporarily blocked this account. Wait a few minutes, or use your roll number for instant offline access.",
+          "error"
+        );
+      } else {
+        showMessage(err.message || String(err), "error");
+      }
     }
   }
 
@@ -170,6 +193,10 @@ export default function DashboardPage() {
   async function upload() {
     if (!currentUser) return showMessage("Sign in first", "error");
     if (!file) return showMessage("Choose a file to upload", "error");
+
+    // Client-side file validation before upload
+    const fileError = validateFileUpload(file);
+    if (fileError) return showMessage(`✗ ${fileError}`, "error");
 
     let token = "mock-token";
     if (currentUser.getIdToken) {
@@ -220,30 +247,63 @@ export default function DashboardPage() {
     if (!currentUser || !slug) return showMessage("Sign in first", "error");
     if (!db) return showMessage("Firestore not configured", "error");
 
+    // ── Input Validation ──────────────────────────────────────
+    const cleanEmail = personalEmail.trim();
+    if (cleanEmail && !isValidEmail(cleanEmail)) {
+      return showMessage("✗ Invalid email format.", "error");
+    }
+
+    const cleanLinkedin = linkedin.trim();
+    if (cleanLinkedin && !isValidUrl(cleanLinkedin)) {
+      return showMessage("✗ LinkedIn URL must be a valid HTTPS link.", "error");
+    }
+
+    const cleanPortfolio = portfolio.trim();
+    if (cleanPortfolio && !isValidUrl(cleanPortfolio)) {
+      return showMessage("✗ Portfolio URL must be a valid HTTPS link.", "error");
+    }
+
     setIsSaving(true);
     showMessage("Saving profile...", "info");
 
     try {
+      // ── Sanitize All Inputs ────────────────────────────────
+      const sanitizedSynopsis = sanitizeInput(synopsis, 2000);
       const parsedSkills = skillsText
         .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
+        .map((s) => sanitizeInput(s, 100))
+        .filter(Boolean)
+        .slice(0, 30); // max 30 skills
+
+      const sanitizedProjects = projects.map((p: any) => ({
+        title: sanitizeInput(p.title || "", 200),
+        summary: sanitizeInput(p.summary || "", 1000),
+        status: ["Concept", "Ongoing", "Completed"].includes(p.status) ? p.status : "Concept",
+      })).slice(0, 20); // max 20 projects
+
+      const sanitizedSections = profileSections.map((s: any) => ({
+        title: sanitizeInput(s.title || "", 200),
+        body: sanitizeInput(s.body || "", 2000),
+        items: Array.isArray(s.items)
+          ? s.items.map((item: string) => sanitizeInput(item, 500)).slice(0, 20)
+          : undefined,
+      })).slice(0, 15); // max 15 sections
 
       await setDoc(doc(db, "profiles", slug), {
-        synopsis,
-        personalEmail: personalEmail.trim(),
-        linkedin: linkedin.trim(),
-        portfolio: portfolio.trim(),
+        synopsis: sanitizedSynopsis,
+        personalEmail: sanitizeInput(cleanEmail, 254),
+        linkedin: sanitizeInput(cleanLinkedin, 500),
+        portfolio: sanitizeInput(cleanPortfolio, 500),
         skills: parsedSkills,
-        projects,
-        profileSections,
+        projects: sanitizedProjects,
+        profileSections: sanitizedSections,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
 
       showMessage("✓ Profile saved successfully!", "success");
     } catch (err: any) {
       console.error("Save profile error:", err);
-      showMessage(`✗ Save failed: ${err.message || String(err)}`, "error");
+      showMessage("✗ Save failed. Please try again.", "error");
     } finally {
       setIsSaving(false);
     }

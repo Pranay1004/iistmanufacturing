@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
+  // Disable x-powered-by header (leaks framework info)
+  poweredByHeader: false,
+
   async headers() {
     return [
       {
@@ -19,6 +24,10 @@ const nextConfig: NextConfig = {
             value: "nosniff",
           },
           {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
@@ -27,17 +36,28 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
           {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none",
+          },
+          {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self';",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com;",
+              // unsafe-inline kept for Next.js style injection; unsafe-eval REMOVED
+              "script-src 'self' 'unsafe-inline' https://apis.google.com https://*.firebaseapp.com;",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
-              "img-src 'self' blob: data: https://*.googleusercontent.com https://*.firebaseusercontent.com;",
+              "img-src 'self' blob: data: https://*.googleusercontent.com https://*.firebaseusercontent.com https://cdn.jsdelivr.net;",
               "font-src 'self' data: https://fonts.gstatic.com;",
-              "connect-src 'self' https://*.googleapis.com wss://*.firebaseio.com https://*.firebaseio.com wss://*.hotjar.com wss://localhost:* ws://localhost:* wss://127.0.0.1:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*;",
+              // Production: no localhost; Dev: allow localhost for HMR
+              isDev
+                ? "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com ws://localhost:* http://localhost:* ws://127.0.0.1:* http://127.0.0.1:*;"
+                : "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com;",
               "frame-src 'self' https://*.firebaseapp.com;",
               "object-src 'none';",
               "base-uri 'self';",
+              "form-action 'self';",
+              "frame-ancestors 'none';",
+              "upgrade-insecure-requests;",
             ].join(" "),
           },
         ],
@@ -47,4 +67,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

@@ -2,50 +2,99 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Security Headers Proxy
- * Adds critical security and SEO headers to all responses
+ * Security Proxy (Next.js 16 Proxy Convention)
+ * Handles global rate limiting, bot protection, security headers, and anti-indexing for private routes.
  */
+
+// Rate Limiter Store
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 120;
+const RATE_LIMIT_WINDOW = 60_000;
+
+function checkRateLimit(key: string, max: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (rateLimitStore.size > 50000) {
+    for (const [k, v] of rateLimitStore) {
+      if (now > v.resetAt) rateLimitStore.delete(k);
+    }
+  }
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > max;
+}
+
+// Known scanner user-agents
+const BLOCKED_BOTS = [
+  "sqlmap",
+  "nikto",
+  "nmap",
+  "masscan",
+  "zgrab",
+  "gobuster",
+  "dirbuster",
+  "wpscan",
+  "nuclei",
+  "httpx",
+];
+
 export function proxy(request: NextRequest) {
-  const response = NextResponse.next();
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
 
-  // Content Security Policy - prevents XSS attacks
-  response.headers.set(
-    "Content-Security-Policy",
-    process.env.NODE_ENV === "development"
-      ? "default-src 'self' http://127.0.0.1:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: cdn.jsdelivr.net; connect-src 'self' http://127.0.0.1:* https:; frame-ancestors 'none';"
-      : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: cdn.jsdelivr.net; connect-src 'self' https:; frame-ancestors 'none';"
-  );
+  // ── Bot Protection ────────────────────────────────────────────
+  const ua = (request.headers.get("user-agent") || "").toLowerCase();
+  if (BLOCKED_BOTS.some((bot) => ua.includes(bot))) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
 
-  // Prevent clickjacking
-  response.headers.set("X-Frame-Options", "DENY");
+  // ── Edge Rate Limiting ────────────────────────────────────────
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+  const limitKey = isApiRoute ? `api:${ip}` : `page:${ip}`;
+  const maxReqs = isApiRoute ? 60 : RATE_LIMIT_MAX;
 
-  // Prevent MIME sniffing
-  response.headers.set("X-Content-Type-Options", "nosniff");
-
-  // Enable XSS protection
-  response.headers.set("X-XSS-Protection", "1; mode=block");
-
-  // Referrer policy - privacy conscious
-  response.headers.set(
-    "Referrer-Policy",
-    "strict-origin-when-cross-origin"
-  );
-
-  // Feature policy - restrict dangerous features
-  response.headers.set(
-    "Permissions-Policy",
-    "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
-  );
-
-  // HSTS - enforce HTTPS (only in production)
-  if (process.env.NODE_ENV === "production") {
-    response.headers.set(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains; preload"
+  if (checkRateLimit(limitKey, maxReqs)) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": "60",
+          "X-Content-Type-Options": "nosniff",
+        },
+      },
     );
   }
 
-  // SEO: Allow indexing on public pages, block on admin
+  const response = NextResponse.next();
+
+  // ── Security Headers ──────────────────────────────────────────
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  );
+  response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
+
+  if (process.env.NODE_ENV === "production") {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=63072000; includeSubDomains; preload",
+    );
+  }
+
+  // ── Anti-indexing for private routes ──────────────────────────
   if (
     request.nextUrl.pathname.startsWith("/dashboard") ||
     request.nextUrl.pathname.startsWith("/admin") ||
@@ -56,16 +105,23 @@ export function proxy(request: NextRequest) {
     response.headers.set("X-Robots-Tag", "index, follow");
   }
 
-  // Remove sensitive headers
+  // ── No-cache for API ──────────────────────────────────────────
+  if (isApiRoute) {
+    response.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, private",
+    );
+  }
+
+  // Remove fingerprint headers
   response.headers.delete("X-Powered-By");
   response.headers.delete("Server");
 
   return response;
 }
 
-// Apply proxy to all routes except static files
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|public|robots.txt|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|media|robots.txt|sitemap.xml).*)",
   ],
 };

@@ -1,135 +1,219 @@
 /**
- * Advanced Cryptographic Security Module
- * 
- * Implements standard production-grade secure client-side and server-side encryption
- * protocols utilizing the hardware-accelerated W3C Web Cryptography API.
- * 
- * Designed to satisfy strict encryption guidelines ("AES 512-bit equivalent" metrics):
- * - Key Derivation: PBKDF2-HMAC-SHA-512 with 100,000 iterations for secure key strengthening.
- * - Cipher: AES-256-GCM (Galois/Counter Mode) authenticated symmetric encryption,
- *   offering both data confidentiality and cryptographic authenticity verification.
- * - Integrity Verification: SHA-512 digital hashing to guarantee message integrity.
+ * Production Security Utilities
+ *
+ * Provides input sanitization, validation, rate limiting, and safe error
+ * handling for all server-side API routes and client-side form submissions.
+ *
+ * OWASP-aligned: prevents XSS, path traversal, file upload abuse, and
+ * information disclosure through generic error responses.
  */
 
-// Helper to convert array buffer to base64
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return typeof window !== "undefined" ? window.btoa(binary) : Buffer.from(binary, "binary").toString("base64");
-}
+// ─── Input Sanitization ────────────────────────────────────────────
 
-// Helper to convert base64 to array buffer
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binary = typeof window !== "undefined" ? window.atob(base64) : Buffer.from(base64, "base64").toString("binary");
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
+/**
+ * Strips HTML tags and trims whitespace. Use on all free-text user inputs
+ * before persisting to any datastore.
+ */
+export function sanitizeInput(
+  input: string,
+  maxLength: number = 5000,
+): string {
+  if (typeof input !== "string") return "";
+  return input
+    .replace(/<[^>]*>/g, "")           // strip HTML tags
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "") // strip control chars
+    .trim()
+    .slice(0, maxLength);
 }
 
 /**
- * Derives an AES-256 CryptoKey from a master password and salt using PBKDF2-HMAC-SHA-512
+ * Whitelist-only slug sanitizer. Prevents path traversal attacks
+ * (e.g. "../../etc/passwd") by allowing only lowercase alphanumeric + hyphen.
  */
-async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
-  const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveKey", "deriveBits"]
-  );
+export function sanitizeSlug(slug: string): string {
+  if (typeof slug !== "string") return "unknown";
+  const cleaned = slug
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/^-+|-+$/g, "")       // trim leading/trailing hyphens
+    .slice(0, 100);
+  return cleaned || "unknown";
+}
 
-  return crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt: salt as any,
-      iterations: 100000,
-      hash: "SHA-512",
-    },
-    baseKey,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  );
+// ─── Validation ────────────────────────────────────────────────────
+
+/** Basic RFC 5322 email validation */
+export function isValidEmail(email: string): boolean {
+  if (typeof email !== "string" || email.length > 254) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/** Only HTTPS URLs allowed (prevents javascript: and data: URI attacks) */
+export function isValidUrl(url: string): boolean {
+  if (typeof url !== "string" || url.length > 2048) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+const ALLOWED_MIME_TYPES = ["application/pdf"];
+const ALLOWED_EXTENSIONS = [".pdf"];
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+/**
+ * Validates an uploaded file. Returns null if valid, or an error string.
+ * Checks MIME type, extension, and size.
+ */
+export function validateFileUpload(
+  file: File,
+): string | null {
+  if (!file || typeof file.name !== "string") {
+    return "No file provided";
+  }
+
+  // Check size
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return `File too large. Maximum size is ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB`;
+  }
+
+  // Check extension
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    return `Invalid file type. Only PDF files are allowed`;
+  }
+
+  // Check MIME type
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    return `Invalid file type. Expected PDF, got ${file.type || "unknown"}`;
+  }
+
+  return null; // valid
 }
 
 /**
- * Encrypts a text payload using AES-256-GCM layered with PBKDF2-SHA-512 key strengthening.
- * Returns self-contained base64 components required for secure decryption.
+ * Server-side file buffer validation. Checks the PDF magic bytes header.
  */
-export async function encryptPayload(plainText: string, secretKey: string): Promise<{
-  cipherText: string;
-  salt: string;
-  iv: string;
-}> {
-  const enc = new TextEncoder();
-  
-  // Cryptographically strong random salt (16 bytes) and Initialization Vector (12 bytes for GCM)
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  // Derive secure 256-bit key using PBKDF2-HMAC-SHA512
-  const derivedKey = await deriveKey(secretKey, salt);
-
-  // Perform GCM authenticated encryption
-  const encryptedBuffer = await crypto.subtle.encrypt(
-    {
-      name: "AES-GCM",
-      iv: iv,
-    },
-    derivedKey,
-    enc.encode(plainText)
+export function validatePdfBuffer(buffer: Buffer): boolean {
+  // PDF files start with %PDF (hex: 25 50 44 46)
+  if (buffer.length < 4) return false;
+  return (
+    buffer[0] === 0x25 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x44 &&
+    buffer[3] === 0x46
   );
+}
+
+// ─── Safe Error Responses ──────────────────────────────────────────
+
+/**
+ * Logs the full error server-side and returns a generic message for the client.
+ * Never expose stack traces, internal paths, or DB errors to users.
+ */
+export function safeErrorResponse(
+  error: unknown,
+  context: string,
+  status: number = 500,
+): { message: string; status: number } {
+  // Log full detail on server (visible in Vercel logs, not to users)
+  console.error(`[SECURITY][${context}]`, error);
 
   return {
-    cipherText: arrayBufferToBase64(encryptedBuffer),
-    salt: arrayBufferToBase64(salt.buffer),
-    iv: arrayBufferToBase64(iv.buffer),
+    message: "Something went wrong. Please try again later.",
+    status,
   };
 }
 
-/**
- * Decrypts an AES-256-GCM authenticated payload. Throws error if key derivation
- * or authenticity tag fails, preventing cipher manipulation or tampering.
- */
-export async function decryptPayload(
-  cipherText: string,
-  secretKey: string,
-  saltBase64: string,
-  ivBase64: string
-): Promise<string> {
-  const dec = new TextDecoder();
+// ─── Rate Limiter ──────────────────────────────────────────────────
 
-  const salt = new Uint8Array(base64ToArrayBuffer(saltBase64));
-  const iv = new Uint8Array(base64ToArrayBuffer(ivBase64));
-  const cipherBuffer = base64ToArrayBuffer(cipherText);
-
-  // Derive the matching AES-256 key from salt & password
-  const derivedKey = await deriveKey(secretKey, salt);
-
-  // Perform authenticated decryption
-  const decryptedBuffer = await crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv: iv,
-    },
-    derivedKey,
-    cipherBuffer
-  );
-
-  return dec.decode(decryptedBuffer);
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
 }
 
 /**
- * Computes a secure cryptographic signature (one-way hash) using SHA-512
+ * Simple in-memory sliding window rate limiter.
+ *
+ * For production at scale, use Redis or Upstash Rate Limit.
+ * This works well for Vercel serverless with low-to-moderate traffic.
  */
-export async function computeSignature(data: string): Promise<string> {
-  const enc = new TextEncoder();
-  const buffer = await crypto.subtle.digest("SHA-512", enc.encode(data));
-  return arrayBufferToBase64(buffer);
+export class RateLimiter {
+  private store = new Map<string, RateLimitEntry>();
+  private maxRequests: number;
+  private windowMs: number;
+
+  constructor(maxRequests: number, windowMs: number) {
+    this.maxRequests = maxRequests;
+    this.windowMs = windowMs;
+  }
+
+  /**
+   * Returns true if the request should be BLOCKED (rate limited).
+   */
+  isRateLimited(identifier: string): boolean {
+    const now = Date.now();
+    const entry = this.store.get(identifier);
+
+    // Cleanup stale entries periodically
+    if (this.store.size > 10000) {
+      for (const [key, val] of this.store) {
+        if (now > val.resetAt) this.store.delete(key);
+      }
+    }
+
+    if (!entry || now > entry.resetAt) {
+      this.store.set(identifier, { count: 1, resetAt: now + this.windowMs });
+      return false;
+    }
+
+    entry.count++;
+    if (entry.count > this.maxRequests) {
+      return true; // BLOCKED
+    }
+
+    return false;
+  }
+
+  /** Returns remaining requests for this identifier */
+  remaining(identifier: string): number {
+    const entry = this.store.get(identifier);
+    if (!entry || Date.now() > entry.resetAt) return this.maxRequests;
+    return Math.max(0, this.maxRequests - entry.count);
+  }
+}
+
+// Pre-configured limiters for different endpoints
+export const apiUploadLimiter = new RateLimiter(5, 60_000);    // 5 per minute
+export const apiProfilesLimiter = new RateLimiter(30, 60_000); // 30 per minute
+export const apiGeneralLimiter = new RateLimiter(60, 60_000);  // 60 per minute
+
+// ─── Request Helpers ───────────────────────────────────────────────
+
+/**
+ * Extracts client IP from request headers (works on Vercel, Cloudflare, etc.)
+ */
+export function getClientIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    req.headers.get("cf-connecting-ip") ||
+    "unknown"
+  );
+}
+
+/**
+ * Adds security headers to a NextResponse-compatible headers object.
+ */
+export function securityHeaders(): Record<string, string> {
+  return {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Permitted-Cross-Domain-Policies": "none",
+    "Cache-Control": "no-store, no-cache, must-revalidate, private",
+  };
 }

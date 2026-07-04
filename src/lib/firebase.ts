@@ -16,11 +16,10 @@ export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId,
 );
 
-console.log("[Firebase Init] isConfigured:", isFirebaseConfigured, {
-  hasApiKey: !!firebaseConfig.apiKey,
-  hasAuthDomain: !!firebaseConfig.authDomain,
-  hasProjectId: !!firebaseConfig.projectId,
-});
+// Production-safe: log only whether Firebase is configured, never log actual values
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  console.log("[Firebase] configured:", isFirebaseConfigured);
+}
 
 const app = isFirebaseConfigured && !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
