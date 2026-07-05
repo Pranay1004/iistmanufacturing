@@ -2,35 +2,39 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Security Proxy (Next.js 16 Proxy Convention)
- * Handles global rate limiting, bot protection, security headers, and anti-indexing for private routes.
+ * Security Proxy (Next.js 16 Edge Proxy)
+ * Fail-safe design: Never throws or breaks page loading on Vercel edge deployment.
  */
 
-// Rate Limiter Store
+// Edge Rate Limiter Store
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 120;
 const RATE_LIMIT_WINDOW = 60_000;
 
 function checkRateLimit(key: string, max: number): boolean {
-  const now = Date.now();
-  const entry = rateLimitStore.get(key);
+  try {
+    const now = Date.now();
+    const entry = rateLimitStore.get(key);
 
-  if (rateLimitStore.size > 50000) {
-    for (const [k, v] of rateLimitStore) {
-      if (now > v.resetAt) rateLimitStore.delete(k);
+    if (rateLimitStore.size > 10000) {
+      for (const [k, v] of rateLimitStore) {
+        if (now > v.resetAt) rateLimitStore.delete(k);
+      }
     }
-  }
 
-  if (!entry || now > entry.resetAt) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
-    return false;
-  }
+    if (!entry || now > entry.resetAt) {
+      rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+      return false;
+    }
 
-  entry.count++;
-  return entry.count > max;
+    entry.count++;
+    return entry.count > max;
+  } catch {
+    return false; // Fail-open to avoid blocking users if map errors out
+  }
 }
 
-// Known scanner user-agents
+// Known scanner user-agents (lowercase)
 const BLOCKED_BOTS = [
   "sqlmap",
   "nikto",
@@ -45,79 +49,81 @@ const BLOCKED_BOTS = [
 ];
 
 export function proxy(request: NextRequest) {
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown";
+  try {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
 
-  // ── Bot Protection ────────────────────────────────────────────
-  const ua = (request.headers.get("user-agent") || "").toLowerCase();
-  if (BLOCKED_BOTS.some((bot) => ua.includes(bot))) {
-    return new NextResponse("Forbidden", { status: 403 });
-  }
+    // ── 1. Bot Protection ──────────────────────────────────────────
+    const ua = (request.headers.get("user-agent") || "").toLowerCase();
+    if (BLOCKED_BOTS.some((bot) => ua.includes(bot))) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
 
-  // ── Edge Rate Limiting ────────────────────────────────────────
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
-  const limitKey = isApiRoute ? `api:${ip}` : `page:${ip}`;
-  const maxReqs = isApiRoute ? 60 : RATE_LIMIT_MAX;
+    // ── 2. Edge Rate Limiting ──────────────────────────────────────
+    const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+    const limitKey = isApiRoute ? `api:${ip}` : `page:${ip}`;
+    const maxReqs = isApiRoute ? 60 : RATE_LIMIT_MAX;
 
-  if (checkRateLimit(limitKey, maxReqs)) {
-    return NextResponse.json(
-      { error: "Too many requests. Please slow down." },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": "60",
-          "X-Content-Type-Options": "nosniff",
+    if (checkRateLimit(limitKey, maxReqs)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "60",
+            "X-Content-Type-Options": "nosniff",
+          },
         },
-      },
-    );
-  }
+      );
+    }
 
-  const response = NextResponse.next();
+    const response = NextResponse.next();
 
-  // ── Security Headers ──────────────────────────────────────────
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("X-XSS-Protection", "1; mode=block");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
-  );
-  response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
-
-  if (process.env.NODE_ENV === "production") {
+    // ── 3. Security Headers ────────────────────────────────────────
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("X-XSS-Protection", "1; mode=block");
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     response.headers.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubDomains; preload",
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
     );
+    response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
+
+    if (process.env.NODE_ENV === "production") {
+      response.headers.set(
+        "Strict-Transport-Security",
+        "max-age=63072000; includeSubDomains; preload",
+      );
+    }
+
+    // ── 4. Anti-indexing for private routes ────────────────────────
+    if (
+      request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/admin") ||
+      request.nextUrl.pathname.startsWith("/login")
+    ) {
+      response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    } else {
+      response.headers.set("X-Robots-Tag", "index, follow");
+    }
+
+    // ── 5. Cache control for API ───────────────────────────────────
+    if (isApiRoute) {
+      response.headers.set(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, private",
+      );
+    }
+
+    return response;
+  } catch (err) {
+    // Fail-safe: if any edge exception occurs, pass through to standard page render
+    console.error("[Proxy Edge Error]", err);
+    return NextResponse.next();
   }
-
-  // ── Anti-indexing for private routes ──────────────────────────
-  if (
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/admin") ||
-    request.nextUrl.pathname.startsWith("/login")
-  ) {
-    response.headers.set("X-Robots-Tag", "noindex, nofollow");
-  } else {
-    response.headers.set("X-Robots-Tag", "index, follow");
-  }
-
-  // ── No-cache for API ──────────────────────────────────────────
-  if (isApiRoute) {
-    response.headers.set(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, private",
-    );
-  }
-
-  // Remove fingerprint headers
-  response.headers.delete("X-Powered-By");
-  response.headers.delete("Server");
-
-  return response;
 }
 
 export const config = {
