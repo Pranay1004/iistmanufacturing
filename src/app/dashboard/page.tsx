@@ -107,45 +107,49 @@ export default function DashboardPage() {
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedPassword = password.trim();
 
-    // 1. Check if this is a known roll number or email
+    // 1. Check if this is a roll-number input or email input
+    const isRollNumberInput = !trimmedEmail.includes("@");
     const knownPerson = people.find(
       (p) => p.loginId?.toLowerCase() === trimmedEmail || p.officialEmail.toLowerCase() === trimmedEmail
     );
-    const isRollNumberInput = !trimmedEmail.includes("@");
 
-    // 2. LOCAL AUTH — primary path for known users
-    if (knownPerson && knownPerson.loginId) {
-      const passwordMatches =
-        trimmedPassword === knownPerson.loginId ||
-        trimmedPassword.toUpperCase() === knownPerson.loginId.toUpperCase();
+    // 2. LOCAL AUTH — Check if password matches default roll-number credential
+    const localPasswordMatches =
+      knownPerson &&
+      knownPerson.loginId &&
+      (trimmedPassword === knownPerson.loginId ||
+        trimmedPassword.toUpperCase() === knownPerson.loginId.toUpperCase());
 
-      if (passwordMatches) {
-        const mockUser = {
-          uid: knownPerson.slug,
-          email: knownPerson.officialEmail,
-          displayName: knownPerson.name,
-        };
-        localStorage.setItem("mock-user", JSON.stringify(mockUser));
-        setCurrentUser(mockUser);
-        setSlug(knownPerson.slug);
-        showMessage(`✓ Authenticated as ${knownPerson.officialEmail}`, "success");
-        return;
-      } else {
-        showMessage(
-          `✗ Incorrect password for ${knownPerson.name}. Your initial password is your roll number (${knownPerson.loginId}). Use Forgot Password if you changed it.`,
-          "error"
-        );
-        return;
-      }
-    }
-
-    // 3. Unknown roll number
-    if (isRollNumberInput && !knownPerson) {
-      showMessage(`✗ Roll number "${email.trim()}" not found in the directory.`, "error");
+    if (localPasswordMatches) {
+      const mockUser = {
+        uid: knownPerson.slug,
+        email: knownPerson.officialEmail,
+        displayName: knownPerson.name,
+      };
+      localStorage.setItem("mock-user", JSON.stringify(mockUser));
+      setCurrentUser(mockUser);
+      setSlug(knownPerson.slug);
+      showMessage(`✓ Authenticated as ${knownPerson.officialEmail}`, "success");
       return;
     }
 
-    // 4. FIREBASE AUTH — only for email-based logins
+    // 3. ROLL NUMBER INPUT — if password didn't match default, stop here with helpful message
+    if (isRollNumberInput) {
+      if (knownPerson) {
+        showMessage(
+          `✗ Incorrect password for ${knownPerson.name}. Initial password is your roll number (${knownPerson.loginId}). If you changed your password, sign in with your email address.`,
+          "error"
+        );
+      } else {
+        showMessage(
+          `✗ Roll number "${email.trim()}" not found in the directory. Check for typos or contact admin.`,
+          "error"
+        );
+      }
+      return;
+    }
+
+    // 4. EMAIL INPUT — Fall through to Firebase Auth for custom passwords
     if (!auth) return showMessage("Firebase not configured — add environment variables to enable.", "error");
     try {
       const cred = await signInWithEmailAndPassword(auth, trimmedEmail, password);
