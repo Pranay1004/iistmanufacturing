@@ -42,6 +42,10 @@ export type Person = {
   admissionYear?: string;
   mode?: "Regular" | "Sponsored";
   loginId?: string;
+  internship?: string;
+  internalGuide?: string;
+  placedAt?: string;
+  placedRole?: string;
   profileSections?: ProfileSection[];
 };
 
@@ -680,10 +684,15 @@ people.push(
     personalEmail: student.personalEmail,
     linkedin: student.linkedin,
     loginId: student.roll,
-    availability: "Open to roles",
+    supervisor: student.internalGuide,
+    internship: student.internship,
+    internalGuide: student.internalGuide,
+    placedAt: student.placedAt,
+    placedRole: student.placedRole,
+    availability: student.placedAt ? "Joining soon" : "Open to roles",
     synopsis:
-      "Outgoing Manufacturing Technology scholar with project exposure in aerospace manufacturing, process analysis, and applied research communication.",
-    skills: [student.specialization, "Manufacturing analysis", "Lab practice", "Project reporting"],
+      `M.Tech Manufacturing Technology (2024-2026) scholar specializing in ${student.specialization}. Thesis project: "${student.internship}" guided by ${student.internalGuide}.${student.placedAt ? ` Placed at ${student.placedAt}${student.placedRole ? ` as ${student.placedRole}` : ""}.` : ""}`,
+    skills: [student.specialization, "Manufacturing Technology", "Process Analysis", "Aerospace Materials"],
     skillGroups: {
       Core: [student.specialization, "Process optimization", "Materials processing"],
       Tools: ["CAD-CAM", "Data analysis", "Quality review"],
@@ -691,13 +700,23 @@ people.push(
     },
     projects: [
       {
-        title: "Master's thesis dossier",
-        summary: "A structured thesis project profile will be published after student approval.",
-        status: "Ongoing",
+        title: student.internship,
+        summary: `Master's Thesis Project: ${student.internship}. Guided by ${student.internalGuide}.`,
+        status: "Completed",
       },
     ],
     seekingRoles: ["COMPOSITE ENGINEER", "WELDING ENGINEER", "Additive Manufacturing Engineer", "Production Engineer", "Quality Engineer", "Operations", "PGET", "Smart Manufacturing Engineer"],
-    profileSections: defaultStudentSections,
+    profileSections: [
+      {
+        title: "Master's Thesis & Internship Project",
+        body: `Title: ${student.internship}\nInternal Guide: ${student.internalGuide}`,
+      },
+      ...(student.placedAt ? [{
+        title: "Placement / Career Destination",
+        body: `Placed at: ${student.placedAt}${student.placedRole ? ` (${student.placedRole})` : ""}`,
+      }] : []),
+      ...defaultStudentSections.filter(sec => sec.title !== "Summary"),
+    ],
   })),
   ...incomingStudents.map(({ slug, name, specialization }): Person => ({
     slug,

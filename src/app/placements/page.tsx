@@ -64,10 +64,10 @@ export default function PlacementsPage() {
   const currentBatch = people.filter((p) => p.cohort === "2025-2027");
 
   const stats = [
-    { value: String(outgoingBatch.length), label: "Outgoing profiles", icon: GraduationCap },
-    { value: String(currentBatch.length), label: "Intern-ready scholars", icon: Users },
-    { value: "6+", label: "Skill domains", icon: Star },
-    { value: "20+", label: "Roles matched", icon: Briefcase },
+    { value: "85.7%", label: "Placement Rate (2024-26)", icon: Star },
+    { value: String(outgoingBatch.length), label: "Outgoing Scholars", icon: GraduationCap },
+    { value: String(currentBatch.length), label: "Intern-ready Scholars", icon: Users },
+    { value: "20+", label: "Roles Matched", icon: Briefcase },
   ];
 
   return (
@@ -113,6 +113,33 @@ export default function PlacementsPage() {
           </div>
         </section>
 
+        {/* ─── PLACEMENT POSTER SHOWCASE (2024–2026) ─── */}
+        <section className="border-b border-[var(--edge)] bg-[var(--void-deep)]">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+            <ScrollReveal>
+              <div className="flex flex-col gap-2 mb-8">
+                <SectionLabel color="amber" className="mb-2">Official Placement Announcement</SectionLabel>
+                <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">
+                  M.Tech Manufacturing Technology — Class of 2024–2026
+                </h2>
+                <p className="max-w-2xl text-sm leading-6 text-[var(--ceramic-muted)]">
+                  85.7% placement achievement across leading aerospace, defense, precision engineering firms, and prestigious doctoral research offers.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal variant="up">
+              <div className="overflow-hidden rounded-2xl border border-[var(--edge)] bg-black/40 shadow-2xl transition-all hover:border-[var(--forge-amber)]/40">
+                <img
+                  src="/media/photos/placed-2024-2026.jpeg"
+                  alt="M.Tech Manufacturing Technology 2024-2026 Placements Announcement Poster"
+                  className="w-full h-auto object-contain max-h-[850px] mx-auto"
+                />
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
         {/* ─── OUTGOING BATCH ─── */}
         <section className="border-b border-[var(--edge)]">
           <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
@@ -121,11 +148,10 @@ export default function PlacementsPage() {
                 <div>
                   <SectionLabel color="amber" className="mb-2">Class of 2024–2026</SectionLabel>
                   <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">
-                    Outgoing batch — available now
+                    Outgoing batch — Career Destinations
                   </h2>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ceramic-muted)]">
-                    These scholars are completing their M.Tech thesis and are available for full-time
-                    positions, project roles, and industry collaborations.
+                    Scholars completing their M.Tech thesis work with placement offers and higher studies destinations.
                   </p>
                 </div>
                 <MetalButton href="/people" variant="ghost">
@@ -135,7 +161,7 @@ export default function PlacementsPage() {
             </ScrollReveal>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {outgoingBatch.map((person, i) => (
+              {outgoingBatch.map((person) => (
                 <ScrollReveal key={person.slug} variant="up">
                   <Link
                     href={`/people/${person.slug}`}
@@ -153,9 +179,36 @@ export default function PlacementsPage() {
                       {person.specialization}
                     </p>
 
+                    {person.placedAt && (
+                      <div className="mt-3 rounded-lg border border-[var(--forge-amber)]/25 bg-[var(--forge-amber-dim)]/40 p-2.5">
+                        <p className="font-data text-[9px] uppercase tracking-widest text-[var(--forge-amber)] font-bold">
+                          Destination
+                        </p>
+                        <p className="text-xs font-semibold text-[var(--ceramic)] mt-0.5">
+                          {person.placedAt}
+                        </p>
+                        {person.placedRole && (
+                          <p className="text-[11px] text-[var(--ceramic-muted)]">
+                            {person.placedRole}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {person.internship && (
+                      <div className="mt-2.5">
+                        <p className="font-data text-[9px] uppercase tracking-widest text-[var(--ceramic-muted)]">
+                          Thesis / Project
+                        </p>
+                        <p className="text-[11px] leading-relaxed text-[var(--ceramic-muted)] line-clamp-2 mt-0.5">
+                          {person.internship}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       <span className="rounded-full border border-[var(--forge-amber)]/20 bg-[var(--forge-amber-dim)] px-2 py-0.5 text-[10px] font-medium text-[var(--forge-amber)]">
-                        Open to roles
+                        {person.placedAt ? "Placed" : "Open to roles"}
                       </span>
                       {person.linkedin && (
                         <span className="rounded-full border border-[var(--edge)] px-2 py-0.5 text-[10px] text-[var(--ceramic-muted)]">
