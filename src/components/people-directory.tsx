@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { people, type Person, type PersonType } from "@/lib/data";
-import { PersonCard, Portrait, ProfileActions, formatResumeUrl } from "@/components/person-card";
+import { PersonCard, Portrait, ProfileActions } from "@/components/person-card";
 
 const tabs: { label: string; value: PersonType }[] = [
   { label: "M.Tech Students", value: "student" },
@@ -23,28 +23,19 @@ export function PeopleDirectory() {
   const [preview, setPreview] = useState<Person | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
 
-  // All data comes from static data.ts — no database
-  const mergedPeople = useMemo(() => {
-    return people.map((person) => ({
-      ...person,
-      resumeUrl: formatResumeUrl(person.resumeUrl),
-    }));
-  }, []);
-
   const filtered = useMemo(
     () =>
-      mergedPeople.filter((person) => {
+      people.filter((person) => {
         if (person.type !== type) return false;
         if (type === "student") return person.cohort === cohort;
         if (type === "phd") return person.admissionYear === cohort;
         return true;
       }),
-    [mergedPeople, type, cohort],
+    [type, cohort],
   );
 
   const availableCohorts = cohortsForType[type];
 
-  // Reset pagination count on type or cohort change
   const handleTypeChange = (newType: PersonType) => {
     setType(newType);
     setCohort(cohortsForType[newType][0] ?? "");
@@ -56,7 +47,6 @@ export function PeopleDirectory() {
     setVisibleCount(8);
   };
 
-  // Auto scroll reveal — throttled + passive for mobile perf
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -80,7 +70,6 @@ export function PeopleDirectory() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-6">
         
-        {/* Top Header Row with Title/Paragraph on Left and Category/Cohort Selectors on Right */}
         <div className="flex flex-col lg:flex-row gap-6 justify-between items-start border-b border-[var(--edge)] pb-6">
           <div className="max-w-2xl">
             <span className="font-data text-[10px] uppercase tracking-wider text-[var(--arc-blue)] select-none">
@@ -90,13 +79,11 @@ export function PeopleDirectory() {
               M.Tech Scholars & PhD Researchers
             </h1>
             <p className="mt-3 text-sm leading-6 text-[var(--ceramic-muted)]">
-              Academic directory arranged by cohort year. Select a profile card to view projects, research details, and credentials.
+              Academic directory arranged by cohort year. Select a profile card to view projects, research details, and upload credentials.
             </p>
           </div>
 
-          {/* Selectors Container */}
           <div className="flex flex-wrap sm:flex-nowrap gap-4 w-full lg:w-auto shrink-0">
-            {/* Category Selector */}
             <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--edge)] bg-[var(--panel)] p-2.5 w-full sm:w-[220px]">
               <span className="font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] select-none">
                 Category
@@ -119,14 +106,13 @@ export function PeopleDirectory() {
                       "text-[10px] px-1.5 py-0.2 rounded-full font-data",
                       type === tab.value ? "bg-white/20 text-white" : "bg-[var(--panel)] text-[var(--ceramic-muted)]",
                     ].join(" ")}>
-                      {mergedPeople.filter(p => p.type === tab.value).length}
+                      {people.filter(p => p.type === tab.value).length}
                     </span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Cohort Year Selector */}
             {availableCohorts.length > 0 && (
               <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--edge)] bg-[var(--panel)] p-2.5 w-full sm:w-[150px]">
                 <span className="font-data text-[9px] uppercase tracking-wider text-[var(--ceramic-muted)] select-none">
@@ -154,7 +140,6 @@ export function PeopleDirectory() {
           </div>
         </div>
 
-        {/* Name Navigation Ribbon - Shows all names in a single horizontal scrolling row */}
         <div className="rounded-lg border border-[var(--edge)] bg-[var(--void-deep)]/40 p-4 overflow-hidden select-none">
           <span className="block font-data text-[9px] uppercase tracking-[0.16em] text-[var(--ceramic-muted)] mb-2.5">
             Quick Select ({filtered.length} Profiles)
@@ -185,7 +170,6 @@ export function PeopleDirectory() {
           </div>
         </div>
 
-        {/* Directory Grid */}
         <section className="flex flex-col gap-6">
           <div className="grid gap-4 md:grid-cols-2">
             {filtered.slice(0, visibleCount).map((person) => (
@@ -193,7 +177,6 @@ export function PeopleDirectory() {
             ))}
           </div>
 
-          {/* Load More Expander control */}
           {visibleCount < filtered.length && (
             <div className="flex justify-center mt-2">
               <button
@@ -208,7 +191,6 @@ export function PeopleDirectory() {
         </section>
       </div>
 
-      {/* Preview modal */}
       {preview && (
         <div className="fixed inset-0 z-50 grid place-items-end bg-[var(--void)]/80 backdrop-blur-sm p-0 sm:place-items-center sm:p-4" role="dialog" aria-modal="true">
           <div className="max-h-[92svh] w-full max-w-4xl overflow-auto rounded-t-lg bg-[var(--void-deep)] border border-[var(--edge)] shadow-2xl sm:max-h-[90vh] sm:rounded-lg">

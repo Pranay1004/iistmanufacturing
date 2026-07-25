@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
-import { Download, ExternalLink, Share2, Mail } from "lucide-react";
 import type { Person } from "@/lib/data";
 import { GlassCard } from "@/components/ui/GlassCard";
+import Link from "next/link";
+import { Download, ExternalLink, Share2, Mail } from "lucide-react";
 
 export function formatResumeUrl(url: string | undefined): string | undefined {
   if (!url) return url;
@@ -24,7 +24,6 @@ export function Portrait({ name, large = false }: { name: string; large?: boolea
     .map((part) => part[0])
     .join("");
 
-  /* Deterministic color from name hash — each person gets a unique gradient */
   const hash = name.split("").reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
   const hue1 = Math.abs(hash) % 360;
   const hue2 = (hue1 + 45 + (Math.abs(hash >> 8) % 40)) % 360;
@@ -39,16 +38,11 @@ export function Portrait({ name, large = false }: { name: string; large?: boolea
       style={{ background: gradient }}
       aria-label={`${name} portrait placeholder`}
     >
-      {/* Subtle grid overlay for depth */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
-
-      {/* Corner metrology brackets */}
       <div className="absolute top-1.5 left-1.5 size-2 border-t border-l border-white/40" />
       <div className="absolute top-1.5 right-1.5 size-2 border-t border-r border-white/40" />
       <div className="absolute bottom-1.5 left-1.5 size-2 border-b border-l border-white/40" />
       <div className="absolute bottom-1.5 right-1.5 size-2 border-b border-r border-white/40" />
-
-      {/* Centered initials */}
       <div className="absolute inset-0 flex items-center justify-center">
         <span className={[
           "font-display font-bold text-white/90 drop-shadow-sm",
@@ -57,8 +51,6 @@ export function Portrait({ name, large = false }: { name: string; large?: boolea
           {initials}
         </span>
       </div>
-
-      {/* Bottom ID tag */}
       <span className="absolute bottom-1.5 left-1.5 font-data text-[7px] tracking-wider text-white/50 select-none uppercase">
         ID-{initials || "NA"}
       </span>

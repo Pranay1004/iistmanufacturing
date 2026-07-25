@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { PageFrame } from "@/components/site-shell";
-import { Portrait, ProfileActions, formatResumeUrl } from "@/components/person-card";
+import { Portrait, ProfileActions } from "@/components/person-card";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -11,16 +11,11 @@ import { Divider } from "@/components/ui/Divider";
 import type { Person } from "@/lib/data";
 
 export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
-  // All data comes from static data.ts — no database overlay
-  const person = {
-    ...initialPerson,
-    resumeUrl: formatResumeUrl(initialPerson.resumeUrl),
-  };
+  const person = initialPerson;
 
   return (
     <PageFrame>
       <main>
-        {/* ─── Hero Header ─── */}
         <section className="border-b border-[var(--edge)]">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <ScrollReveal>
@@ -59,11 +54,9 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
           </div>
         </section>
 
-        {/* ─── Profile Body ─── */}
         <section className="mx-auto grid max-w-7xl gap-12 px-4 py-12 sm:px-6 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
           <ScrollReveal variant="left" as="aside">
             <div className="space-y-6">
-              {/* Contact */}
               <div>
                 <Divider className="mb-5" />
                 <h2 className="font-display text-2xl font-bold text-[var(--ceramic)]">Contact</h2>
@@ -96,7 +89,6 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                 </dl>
               </div>
 
-              {/* Seeking */}
               {person.seekingRoles && person.seekingRoles.length > 0 && (
                 <div>
                   <Divider className="mb-5" />
@@ -111,12 +103,11 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                 </div>
               )}
 
-              {/* Source URL note */}
               {person.sourceUrl && (
                 <div>
                   <Divider className="mb-5" />
                   <p className="text-sm leading-6 text-[var(--ceramic-muted)]">
-                    Faculty data references the public IIST profile page.
+                    Faculty seed data references the public IIST profile page. Members can refine this after claiming their dashboard profile.
                   </p>
                 </div>
               )}
@@ -125,7 +116,6 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
 
           <ScrollReveal variant="right" as="div">
             <div className="space-y-10">
-              {/* Skills */}
               <section>
                 <Divider className="mb-5" />
                 <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">Skills and expertise</h2>
@@ -142,7 +132,6 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                       </div>
                     </GlassCard>
                   ))}
-                  {/* Dynamic tag skills fallback */}
                   {person.skills && person.skills.length > 0 && (
                     <GlassCard variant="compact" className="md:col-span-2">
                       <h3 className="font-display text-base font-semibold text-[var(--arc-blue)]">All Skills</h3>
@@ -158,7 +147,6 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                 </div>
               </section>
 
-              {/* Projects */}
               <section>
                 <Divider className="mb-5" />
                 <h2 className="font-display text-3xl font-bold text-[var(--ceramic)]">Demonstrated projects</h2>
@@ -177,12 +165,11 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                       </GlassCard>
                     ))
                   ) : (
-                    <p className="leading-7 text-[var(--ceramic-muted)]">Projects will appear here once added.</p>
+                    <p className="leading-7 text-[var(--ceramic-muted)]">Projects will appear here after the profile is claimed and updated.</p>
                   )}
                 </div>
               </section>
 
-              {/* Custom Sections */}
               {person.profileSections && person.profileSections.length > 0 && (
                 <section className="space-y-10">
                   {person.profileSections.map((section) => (
@@ -202,7 +189,6 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                 </section>
               )}
 
-              {/* Courses */}
               {person.courses && (
                 <section>
                   <Divider className="mb-5" />

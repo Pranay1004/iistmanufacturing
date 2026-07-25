@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Briefcase, GraduationCap, Mail, MapPin, Star, Users } from "lucide-react";
 import { PageFrame } from "@/components/site-shell";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
@@ -130,10 +131,13 @@ export default function PlacementsPage() {
 
             <ScrollReveal variant="up">
               <div className="overflow-hidden rounded-2xl border border-[var(--edge)] bg-black/40 shadow-2xl transition-all hover:border-[var(--forge-amber)]/40">
-                <img
+                <Image
                   src="/media/photos/placed-2024-2026.jpeg"
                   alt="M.Tech Manufacturing Technology 2024-2026 Placements Announcement Poster"
+                  width={1200}
+                  height={850}
                   className="w-full h-auto object-contain max-h-[850px] mx-auto"
+                  priority
                 />
               </div>
             </ScrollReveal>
