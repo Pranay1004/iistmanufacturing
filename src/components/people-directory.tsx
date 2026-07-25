@@ -218,8 +218,8 @@ export function PeopleDirectory() {
                 <p className="mt-1 font-medium text-[var(--arc-blue)]">{preview.role}</p>
                 <p className="mt-4 leading-7 text-[var(--ceramic-muted)]">{preview.synopsis}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {preview.skills.map((skill) => (
-                    <span key={skill} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2 py-0.5 text-xs text-[var(--ceramic-muted)]">
+                  {preview.skills.map((skill, idx) => (
+                    <span key={`${skill}-${idx}`} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2 py-0.5 text-xs text-[var(--ceramic-muted)]">
                       {skill}
                     </span>
                   ))}

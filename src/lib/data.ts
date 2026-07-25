@@ -678,9 +678,9 @@ people.push(
     availability: "Open to roles",
     synopsis:
       `M.Tech Manufacturing Technology (2024-2026) scholar specializing in ${student.specialization}. Thesis project: "${student.internship}" guided by ${student.internalGuide}.${student.placedAt ? ` Placed at ${student.placedAt}${student.placedRole ? ` as ${student.placedRole}` : ""}.` : ""}`,
-    skills: [student.specialization, "Manufacturing Technology", "Process Analysis", "Aerospace Materials"],
+    skills: Array.from(new Set([student.specialization, "Process Analysis", "Aerospace Materials", "Process Planning"])),
     skillGroups: {
-      Core: [student.specialization, "Process optimization", "Materials processing"],
+      Core: Array.from(new Set([student.specialization, "Process optimization", "Materials processing"])),
       Tools: ["CAD-CAM", "Data analysis", "Quality review"],
       Professional: ["Research writing", "Team coordination", "Industry communication"],
     },

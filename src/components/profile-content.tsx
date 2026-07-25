@@ -124,8 +124,8 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                     <GlassCard key={group} variant="compact">
                       <h3 className="font-display text-base font-semibold text-[var(--forge-amber)]">{group}</h3>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {skills.map((skill) => (
-                          <span key={skill} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2 py-0.5 text-xs text-[var(--ceramic-muted)]">
+                        {skills.map((skill, idx) => (
+                          <span key={`${skill}-${idx}`} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2 py-0.5 text-xs text-[var(--ceramic-muted)]">
                             {skill}
                           </span>
                         ))}
@@ -136,8 +136,8 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                     <GlassCard variant="compact" className="md:col-span-2">
                       <h3 className="font-display text-base font-semibold text-[var(--arc-blue)]">All Skills</h3>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {person.skills.map((skill) => (
-                          <span key={skill} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2.5 py-1 text-xs text-[var(--ceramic-muted)] font-medium">
+                        {person.skills.map((skill, idx) => (
+                          <span key={`${skill}-${idx}`} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2.5 py-1 text-xs text-[var(--ceramic-muted)] font-medium">
                             {skill}
                           </span>
                         ))}

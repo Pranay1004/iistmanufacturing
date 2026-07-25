@@ -91,8 +91,8 @@ export function PersonCard({
             <span className="mt-1 block text-sm font-medium text-[var(--arc-blue)]">{person.role}</span>
             <span className="mt-2 block text-sm leading-6 text-[var(--ceramic-muted)] line-clamp-2">{person.specialization}</span>
             <span className="mt-3 flex flex-wrap gap-2">
-              {person.skills.slice(0, 3).map((skill) => (
-                <span key={skill} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2 py-0.5 text-xs text-[var(--ceramic-muted)]">
+              {person.skills.slice(0, 3).map((skill, idx) => (
+                <span key={`${skill}-${idx}`} className="rounded-md border border-[var(--edge)] bg-[var(--panel)] px-2 py-0.5 text-xs text-[var(--ceramic-muted)]">
                   {skill}
                 </span>
               ))}
