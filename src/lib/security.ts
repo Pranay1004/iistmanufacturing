@@ -2,10 +2,10 @@
  * Production Security Utilities
  *
  * Provides input sanitization, validation, rate limiting, and safe error
- * handling for all server-side API routes and client-side form submissions.
+ * handling for server-side and client-side use.
  *
- * OWASP-aligned: prevents XSS, path traversal, file upload abuse, and
- * information disclosure through generic error responses.
+ * OWASP-aligned: prevents XSS and information disclosure through
+ * generic error responses.
  */
 
 // ─── Input Sanitization ────────────────────────────────────────────
@@ -26,20 +26,6 @@ export function sanitizeInput(
     .slice(0, maxLength);
 }
 
-/**
- * Whitelist-only slug sanitizer. Prevents path traversal attacks
- * (e.g. "../../etc/passwd") by allowing only lowercase alphanumeric + hyphen.
- */
-export function sanitizeSlug(slug: string): string {
-  if (typeof slug !== "string") return "unknown";
-  const cleaned = slug
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/^-+|-+$/g, "")       // trim leading/trailing hyphens
-    .slice(0, 100);
-  return cleaned || "unknown";
-}
-
 // ─── Validation ────────────────────────────────────────────────────
 
 /** Basic RFC 5322 email validation */
@@ -57,54 +43,6 @@ export function isValidUrl(url: string): boolean {
   } catch {
     return false;
   }
-}
-
-const ALLOWED_MIME_TYPES = ["application/pdf"];
-const ALLOWED_EXTENSIONS = [".pdf"];
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-
-/**
- * Validates an uploaded file. Returns null if valid, or an error string.
- * Checks MIME type, extension, and size.
- */
-export function validateFileUpload(
-  file: File,
-): string | null {
-  if (!file || typeof file.name !== "string") {
-    return "No file provided";
-  }
-
-  // Check size
-  if (file.size > MAX_FILE_SIZE_BYTES) {
-    return `File too large. Maximum size is ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB`;
-  }
-
-  // Check extension
-  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
-  if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    return `Invalid file type. Only PDF files are allowed`;
-  }
-
-  // Check MIME type
-  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    return `Invalid file type. Expected PDF, got ${file.type || "unknown"}`;
-  }
-
-  return null; // valid
-}
-
-/**
- * Server-side file buffer validation. Checks the PDF magic bytes header.
- */
-export function validatePdfBuffer(buffer: Buffer): boolean {
-  // PDF files start with %PDF (hex: 25 50 44 46)
-  if (buffer.length < 4) return false;
-  return (
-    buffer[0] === 0x25 &&
-    buffer[1] === 0x50 &&
-    buffer[2] === 0x44 &&
-    buffer[3] === 0x46
-  );
 }
 
 // ─── Safe Error Responses ──────────────────────────────────────────
@@ -185,9 +123,7 @@ export class RateLimiter {
   }
 }
 
-// Pre-configured limiters for different endpoints
-export const apiUploadLimiter = new RateLimiter(5, 60_000);    // 5 per minute
-export const apiProfilesLimiter = new RateLimiter(30, 60_000); // 30 per minute
+// Pre-configured limiter for general use
 export const apiGeneralLimiter = new RateLimiter(60, 60_000);  // 60 per minute
 
 // ─── Request Helpers ───────────────────────────────────────────────

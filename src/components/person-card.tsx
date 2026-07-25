@@ -1,11 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Download, ExternalLink, Share2, Mail } from "lucide-react";
 import type { Person } from "@/lib/data";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 export function formatResumeUrl(url: string | undefined): string | undefined {
   if (!url) return url;
@@ -76,24 +73,7 @@ export function PersonCard({
   person: Person;
   onPreview?: (person: Person) => void;
 }) {
-  const [resumeUrl, setResumeUrl] = useState(formatResumeUrl(person.resumeUrl));
-
-  useEffect(() => {
-    setResumeUrl(formatResumeUrl(person.resumeUrl));
-  }, [person.resumeUrl]);
-
-  useEffect(() => {
-    if (!db || person.resumeUrl) return;
-    const docRef = doc(db, "profiles", person.slug);
-    getDoc(docRef).then((snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.resumeUrl) {
-          setResumeUrl(formatResumeUrl(data.resumeUrl));
-        }
-      }
-    }).catch(err => console.error("Error fetching card resume:", err));
-  }, [person.slug, person.resumeUrl]);
+  const resumeUrl = formatResumeUrl(person.resumeUrl);
 
   return (
     <GlassCard 
@@ -163,24 +143,7 @@ export function PersonCard({
 }
 
 export function ProfileActions({ person }: { person: Person }) {
-  const [resumeUrl, setResumeUrl] = useState(formatResumeUrl(person.resumeUrl));
-
-  useEffect(() => {
-    setResumeUrl(formatResumeUrl(person.resumeUrl));
-  }, [person.resumeUrl]);
-
-  useEffect(() => {
-    if (!db || person.resumeUrl) return;
-    const docRef = doc(db, "profiles", person.slug);
-    getDoc(docRef).then((snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.resumeUrl) {
-          setResumeUrl(formatResumeUrl(data.resumeUrl));
-        }
-      }
-    }).catch(err => console.error("Error fetching actions resume:", err));
-  }, [person.slug, person.resumeUrl]);
+  const resumeUrl = formatResumeUrl(person.resumeUrl);
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -238,4 +201,3 @@ export function ProfileActions({ person }: { person: Person }) {
     </div>
   );
 }
-

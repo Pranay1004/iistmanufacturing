@@ -4,8 +4,6 @@ import { useMemo, useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { people, type Person, type PersonType } from "@/lib/data";
 import { PersonCard, Portrait, ProfileActions, formatResumeUrl } from "@/components/person-card";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 const tabs: { label: string; value: PersonType }[] = [
   { label: "M.Tech Students", value: "student" },
@@ -24,36 +22,14 @@ export function PeopleDirectory() {
   const [cohort, setCohort] = useState("2025-2027");
   const [preview, setPreview] = useState<Person | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
-  const [dbProfiles, setDbProfiles] = useState<Record<string, any>>({});
 
-  useEffect(() => {
-    if (!db) return;
-    getDocs(collection(db, "profiles"))
-      .then((snapshot) => {
-        const profiles: Record<string, any> = {};
-        snapshot.forEach((docSnap) => {
-          profiles[docSnap.id] = docSnap.data();
-        });
-        setDbProfiles(profiles);
-      })
-      .catch((err) => console.error("Error loading dynamic profiles client-side:", err));
-  }, []);
-
+  // All data comes from static data.ts — no database
   const mergedPeople = useMemo(() => {
-    return people.map((person) => {
-      const dbProfile = dbProfiles[person.slug];
-      if (dbProfile) {
-        return {
-          ...person,
-          resumeUrl: formatResumeUrl(dbProfile.resumeUrl) || formatResumeUrl(person.resumeUrl),
-        };
-      }
-      return {
-        ...person,
-        resumeUrl: formatResumeUrl(person.resumeUrl),
-      };
-    });
-  }, [dbProfiles]);
+    return people.map((person) => ({
+      ...person,
+      resumeUrl: formatResumeUrl(person.resumeUrl),
+    }));
+  }, []);
 
   const filtered = useMemo(
     () =>
@@ -114,7 +90,7 @@ export function PeopleDirectory() {
               M.Tech Scholars & PhD Researchers
             </h1>
             <p className="mt-3 text-sm leading-6 text-[var(--ceramic-muted)]">
-              Academic directory arranged by cohort year. Select a profile card to view projects, research details, and upload credentials.
+              Academic directory arranged by cohort year. Select a profile card to view projects, research details, and credentials.
             </p>
           </div>
 

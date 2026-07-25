@@ -36,12 +36,9 @@ export type Person = {
   researchInterests?: string[];
   seekingRoles?: string[];
   resumeUrl?: string;
-  canApprove?: boolean;
-  isAdmin?: boolean;
   sourceUrl?: string;
   admissionYear?: string;
   mode?: "Regular" | "Sponsored";
-  loginId?: string;
   internship?: string;
   internalGuide?: string;
   placedAt?: string;
@@ -294,7 +291,7 @@ export const people: Person[] = [
     officialEmail: "sooraj@iist.ac.in",
     location: "R-103, D4",
     availability: "Research focused",
-    canApprove: true,
+
     synopsis:
       "Faculty lead for space-oriented manufacturing design, additive and subtractive processes, precision engineering, and payload-oriented prototype development. His work anchors the program's advanced manufacturing direction for aerospace applications.",
     skills: ["Additive manufacturing", "Precision engineering", "Space payloads", "CAD-CAM"],
@@ -436,7 +433,6 @@ const currentStudents = [
     supervisor: "Dr. B. S. Girish",
     internship: "Friction Stir Welding",
     projectTitle: "Scheduling of Autoclave (CMSE)",
-    isAdmin: false
   },
   {
     slug: "anushyanth-a",
@@ -447,7 +443,6 @@ const currentStudents = [
     supervisor: "Dr. Sooraj V. S",
     internship: "AMTDC - IIT Madras",
     projectTitle: "Repair welding of FSW joints (VSSC)",
-    isAdmin: false
   },
   {
     slug: "juveriya-sayyed",
@@ -458,7 +453,6 @@ const currentStudents = [
     supervisor: "Dr. Sooraj V. S",
     internship: "VSSC - DfAM",
     projectTitle: "CMSE - Composites",
-    isAdmin: false
   },
   {
     slug: "lakshmi-k",
@@ -469,7 +463,6 @@ const currentStudents = [
     supervisor: "Dr. Chakravarthy P.",
     internship: "Incremental Forming (IIST/VSSC)",
     projectTitle: "High strain rate forming using shock tubes",
-    isAdmin: false
   },
   {
     slug: "shivam-ajay-saraswat",
@@ -480,7 +473,6 @@ const currentStudents = [
     supervisor: "Dr. Sooraj V. S",
     internship: "AMTDC - IIT Madras",
     projectTitle: "Additive Manufacturing (IIST/LPSC/VSSC)",
-    isAdmin: false
   },
   {
     slug: "bishodeep-sardar",
@@ -492,7 +484,6 @@ const currentStudents = [
     externalGuide: "Dr. Agilan (VSSC)",
     internship: "Mechanical properties and microstructure studies on gas tungsten arc welded AA2014",
     projectTitle: "Incremental Forming (IIST/VSSC)",
-    isAdmin: false
   },
   {
     slug: "pranay-kumar-pandey",
@@ -504,7 +495,6 @@ const currentStudents = [
     externalGuide: "Mr. C Venkateswaran",
     internship: "Awaiting Inputs",
     projectTitle: "Additive Manufacturing (IIST/LPSC/VSSC)",
-    isAdmin: true
   },
   {
     slug: "abdullah-rishad",
@@ -515,7 +505,6 @@ const currentStudents = [
     supervisor: "Dr. Sooraj V. S",
     internship: "L&T (Waiting response/sooraj sir), backup option CMSE (composites)",
     projectTitle: "GTAW Of AL7075 and SCC Studies (IIST/VSSC)",
-    isAdmin: false
   }
 ] as const;
 
@@ -645,9 +634,7 @@ people.push(
     personalEmail: `${s.slug.replaceAll("-", ".")}@gmail.com`,
     portfolio: `https://${s.slug}.portfolio.example`,
     linkedin: `https://www.linkedin.com/in/${s.slug}`,
-    loginId: s.roll,
     availability: "Open to internships",
-    isAdmin: s.isAdmin,
     supervisor: s.supervisor,
     synopsis: `M.Tech Manufacturing Technology scholar building aerospace-oriented manufacturing depth through coursework, lab work, process planning, and applied project documentation. Specializing in ${s.specialization} with active research focus on ${s.broadIdea || s.specialization}.`,
     skills: [s.specialization, "Process planning", "Technical documentation", "Aerospace manufacturing"],
@@ -683,7 +670,7 @@ people.push(
     officialEmail: student.officialEmail,
     personalEmail: student.personalEmail,
     linkedin: student.linkedin,
-    loginId: student.roll,
+
     supervisor: student.internalGuide,
     internship: student.internship,
     internalGuide: student.internalGuide,
@@ -727,7 +714,7 @@ people.push(
     cohort: "2026-2028",
     specialization,
     officialEmail: "to-be-updated@iist.ac.in",
-    loginId: `SC26M${String(Number(slug.split("-").at(-1)) + 140).padStart(3, "0")}`,
+
     availability: "Joining soon",
     synopsis: "This profile will unlock when the 2026-2028 cohort joins the Manufacturing Technology program.",
     skills: ["Profile pending", "Joining August 2026"],
@@ -772,14 +759,7 @@ people.push(
   })),
 );
 
-export const initialLoginCredentials = people
-  .filter((person) => person.loginId)
-  .map((person) => ({
-    name: person.name,
-    role: person.role,
-    username: person.loginId as string,
-    initialPassword: person.loginId as string,
-  }));
+
 
 export function getPerson(slug: string) {
   return people.find((person) => person.slug === slug);

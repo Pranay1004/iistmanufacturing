@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { PageFrame } from "@/components/site-shell";
@@ -10,34 +9,13 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Divider } from "@/components/ui/Divider";
 import type { Person } from "@/lib/data";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
-  const [person, setPerson] = useState<Person>(initialPerson);
-
-  useEffect(() => {
-    if (!db) return;
-    const docRef = doc(db, "profiles", initialPerson.slug);
-    getDoc(docRef)
-      .then((docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setPerson((prev) => ({
-            ...prev,
-            synopsis: data.synopsis || prev.synopsis,
-            personalEmail: data.personalEmail !== undefined ? data.personalEmail : prev.personalEmail,
-            linkedin: data.linkedin !== undefined ? data.linkedin : prev.linkedin,
-            portfolio: data.portfolio !== undefined ? data.portfolio : prev.portfolio,
-            skills: data.skills || prev.skills,
-            projects: data.projects || prev.projects,
-            profileSections: data.profileSections || prev.profileSections,
-            resumeUrl: formatResumeUrl(data.resumeUrl) || formatResumeUrl(prev.resumeUrl),
-          }));
-        }
-      })
-      .catch((err) => console.error("Error loading dynamic profile data:", err));
-  }, [initialPerson.slug]);
+  // All data comes from static data.ts — no database overlay
+  const person = {
+    ...initialPerson,
+    resumeUrl: formatResumeUrl(initialPerson.resumeUrl),
+  };
 
   return (
     <PageFrame>
@@ -138,7 +116,7 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                 <div>
                   <Divider className="mb-5" />
                   <p className="text-sm leading-6 text-[var(--ceramic-muted)]">
-                    Faculty seed data references the public IIST profile page. Members can refine this after claiming their dashboard profile.
+                    Faculty data references the public IIST profile page.
                   </p>
                 </div>
               )}
@@ -199,7 +177,7 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                       </GlassCard>
                     ))
                   ) : (
-                    <p className="leading-7 text-[var(--ceramic-muted)]">Projects will appear here after the profile is claimed and updated.</p>
+                    <p className="leading-7 text-[var(--ceramic-muted)]">Projects will appear here once added.</p>
                   )}
                 </div>
               </section>

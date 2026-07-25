@@ -101,9 +101,7 @@ export function proxy(request: NextRequest) {
 
     // ── 4. Anti-indexing for private routes ────────────────────────
     if (
-      request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/admin") ||
-      request.nextUrl.pathname.startsWith("/login")
+      request.nextUrl.pathname.startsWith("/admin")
     ) {
       response.headers.set("X-Robots-Tag", "noindex, nofollow");
     } else {

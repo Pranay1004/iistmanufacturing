@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
-import { GraduationCap, LogIn, Menu, Rocket, X } from "lucide-react";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { useState } from "react";
+import { GraduationCap, Menu, Rocket, X } from "lucide-react";
 
 const navItems = [
   ["About", "/about"],
@@ -20,35 +18,6 @@ const navItems = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const checkLogin = () => {
-      const isMock = !!localStorage.getItem("mock-user");
-      const isFirebase = localStorage.getItem("firebase-logged-in") === "true";
-      setIsLoggedIn(isMock || isFirebase);
-    };
-
-    checkLogin();
-
-    if (auth) {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-          localStorage.setItem("firebase-logged-in", "true");
-          setIsLoggedIn(true);
-        } else {
-          const isMock = !!localStorage.getItem("mock-user");
-          if (!isMock) {
-            localStorage.removeItem("firebase-logged-in");
-            setIsLoggedIn(false);
-          } else {
-            setIsLoggedIn(true);
-          }
-        }
-      });
-      return () => unsubscribe();
-    }
-  }, []);
 
   return (
     <>
@@ -96,23 +65,6 @@ export function SiteHeader() {
             );
           })}
         </nav>
-
-        {/* Login — always pinned to bottom, never hidden */}
-        <Link
-          href={isLoggedIn ? "/dashboard" : "/login"}
-          className={[
-            "group relative w-full h-16 flex flex-col items-center justify-center transition-all duration-300 border-t-2 cursor-pointer select-none shrink-0",
-            pathname === "/login" || pathname === "/dashboard"
-              ? "bg-[var(--arc-blue)] text-white border-[var(--arc-blue)]"
-              : "bg-[var(--void)] text-[var(--arc-blue)] border-[var(--arc-blue)]/30 hover:bg-[var(--arc-blue)] hover:text-white hover:border-[var(--arc-blue)]",
-          ].join(" ")}
-          aria-label={isLoggedIn ? "Dashboard Portal" : "Login Portal"}
-        >
-          <LogIn size={16} className="mb-0.5 transition-colors duration-200" aria-hidden />
-          <span className="font-data text-[8px] uppercase tracking-wider select-none font-bold">
-            {isLoggedIn ? "Dashboard" : "Login"}
-          </span>
-        </Link>
       </aside>
 
       {/* Mobile Top Bar (collapsed on desktop, visible on mobile) */}
@@ -125,22 +77,13 @@ export function SiteHeader() {
             Manufacturing Tech
           </span>
         </Link>
-        <div className="flex items-center gap-2">
-          <Link
-            href={isLoggedIn ? "/dashboard" : "/login"}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded border border-[var(--arc-blue)] bg-[var(--arc-blue-dim)] text-[var(--arc-blue)] text-xs font-semibold hover:bg-[var(--arc-blue)] hover:text-white transition-all"
-          >
-            <LogIn size={13} aria-hidden />
-            {isLoggedIn ? "Dashboard" : "Login"}
-          </Link>
-          <button
-            type="button"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="grid size-9 place-items-center rounded border border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic-muted)] hover:text-[var(--ceramic)] cursor-pointer"
-          >
-            {mobileOpen ? <X size={16} aria-hidden /> : <Menu size={16} aria-hidden />}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="grid size-9 place-items-center rounded border border-[var(--edge)] bg-[var(--panel)] text-[var(--ceramic-muted)] hover:text-[var(--ceramic)] cursor-pointer"
+        >
+          {mobileOpen ? <X size={16} aria-hidden /> : <Menu size={16} aria-hidden />}
+        </button>
       </header>
 
       {/* Mobile Overlay Menu */}
