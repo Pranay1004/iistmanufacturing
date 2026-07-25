@@ -84,7 +84,7 @@ export default function PlacementsPage() {
                 Hire manufacturing engineers{" "}
                 <span className="gradient-shimmer">FORGED in all domains.</span>
               </h1>
-              <p className="mt-6 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg">
+              <p className="mt-6 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg text-justify">
                 Our M.Tech students are engineered for precision and forged across aerospace, automobile,
                 machinery, industrial systems, operations, biomedical engineering, CAD/CAM, and advanced manufacturing.
               </p>

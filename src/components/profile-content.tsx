@@ -41,7 +41,7 @@ export function ProfileContent({ initialPerson }: { initialPerson: Person }) {
                       {person.name}
                     </h1>
                     <p className="mt-2 text-base font-semibold text-[var(--arc-blue)] sm:text-lg">{person.role}</p>
-                    <p className="mt-4 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8 whitespace-pre-wrap">
+                    <p className="mt-4 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8 whitespace-pre-wrap text-justify">
                       {person.synopsis}
                     </p>
                     <div className="mt-6">

@@ -20,7 +20,7 @@ export default function FacultyPage() {
             <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl">
               Faculty & staff anchors for manufacturing technology in aerospace engineering.
             </h1>
-            <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8">
+            <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8 text-justify">
               Research, teaching, labs, and guidance are kept here as a dedicated faculty and support layer,
               separate from the yearwise student and PhD directory.
             </p>

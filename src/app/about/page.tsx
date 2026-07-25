@@ -29,7 +29,7 @@ export default function AboutPage() {
           </ScrollReveal>
 
           <ScrollReveal variant="right" as="article">
-            <div className="space-y-5 text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8">
+            <div className="space-y-5 text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8 text-justify">
               <p>
                 In line with national initiatives such as Make in India and Atmanirbhar Bharat,
                 manufacturing technology is a key subject domain for building strong career prospects,
@@ -61,7 +61,7 @@ export default function AboutPage() {
 
           <div className="mt-5 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <ScrollReveal variant="left">
-              <div className="space-y-5 text-base leading-7 text-[var(--ceramic-muted)]">
+              <div className="space-y-5 text-base leading-7 text-[var(--ceramic-muted)] text-justify">
                 <p>
                   <strong className="text-[var(--ceramic)]">Vision:</strong> {curriculum.vision}
                 </p>

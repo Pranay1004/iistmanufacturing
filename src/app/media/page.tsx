@@ -50,7 +50,7 @@ export default function MediaPage() {
             <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight text-[var(--ceramic)] sm:text-5xl">
               Photos, videos, and testimonials from the manufacturing technology program.
             </h1>
-            <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8">
+            <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--ceramic-muted)] sm:text-lg sm:leading-8 text-justify">
               This page is prepared as the warm public archive for lab moments, process videos,
               student voices, and department stories.
             </p>
