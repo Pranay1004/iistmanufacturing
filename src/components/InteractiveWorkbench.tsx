@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import {
   Cpu, Layers, Zap, PenTool, Activity,

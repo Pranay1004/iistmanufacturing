@@ -34,6 +34,7 @@ export function GlassCard({
   variant?: Variant;
   accent?: AccentColor;
   as?: GlassCardSupportedElements;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } & Omit<ComponentPropsWithoutRef<any>, "as">) {
   return (
     <Tag

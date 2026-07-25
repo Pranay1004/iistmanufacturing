@@ -5,7 +5,6 @@ import { X, ArrowRight, Eye } from "lucide-react";
 import Link from "next/link";
 import { people, type Person, type PersonType } from "@/lib/data";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { SectionLabel } from "@/components/ui/SectionLabel";
 
 const tabs = [
   { label: "M.Tech Projects", value: "student" as PersonType },
@@ -315,7 +314,7 @@ export function ResearchDirectory() {
                     href={`/people/${preview.slug}`}
                     className="inline-flex items-center gap-2 rounded-md border border-[var(--edge)] bg-[var(--panel)] px-4 py-2 text-sm font-medium text-[var(--ceramic)] hover:border-[var(--arc-blue)] hover:text-[var(--arc-blue)] transition-all duration-200"
                   >
-                    View Researcher's Full Profile <ArrowRight size={16} />
+                    View Researcher&apos;s Full Profile <ArrowRight size={16} />
                   </Link>
                 </div>
               </div>

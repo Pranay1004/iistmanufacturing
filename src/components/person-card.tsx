@@ -9,7 +9,7 @@ export function formatResumeUrl(url: string | undefined): string | undefined {
   const githubRawRegex = /^https?:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+)$/;
   const match = url.match(githubRawRegex);
   if (match) {
-    const [_, owner, repo, branch, path] = match;
+    const [, owner, repo, branch, path] = match;
     return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`;
   }
   return url;

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, Float, Line } from "@react-three/drei";
+import { Float, Line } from "@react-three/drei";
 import type { Group, Mesh } from "three";
 
 type Vec3 = [number, number, number];
@@ -232,15 +232,14 @@ export default function HeroScene() {
     >
       <fog attach="fog" args={[warmStudio, 6, 13]} />
 
-      <ambientLight intensity={0.62} />
-      <directionalLight position={[5, 5, 5]} intensity={0.82} color="#fff8eb" />
-      <directionalLight position={[-4, -1, 3]} intensity={0.32} color={forgeAmber} />
-      <pointLight position={[0, 2.8, 2.4]} intensity={0.48} color={arcBlue} distance={8} />
-      <pointLight position={[-2.2, -1.8, 3]} intensity={0.32} color={forgeAmber} distance={6} />
+      <ambientLight intensity={0.7} />
+      <hemisphereLight intensity={0.5} color="#ffffff" groundColor="#3a4245" />
+      <directionalLight position={[5, 6, 5]} intensity={1.2} color="#fff8eb" />
+      <directionalLight position={[-5, -2, 3]} intensity={0.6} color={forgeAmber} />
+      <pointLight position={[0, 3, 2.5]} intensity={0.8} color={arcBlue} distance={10} />
+      <pointLight position={[-2.5, -2, 3]} intensity={0.5} color={forgeAmber} distance={8} />
 
       <AerospaceBracket />
-
-      <Environment preset="warehouse" environmentIntensity={0.36} />
     </Canvas>
   );
 }

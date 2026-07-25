@@ -237,19 +237,6 @@ export const collaborations = [
   },
 ];
 
-const studentProjects: Project[] = [
-  {
-    title: "Aerospace bracket process route",
-    summary: "Comparison of additive, subtractive, and hybrid manufacturing plans for a light-weight aerospace bracket.",
-    status: "Ongoing",
-  },
-  {
-    title: "Inspection-ready manufacturing dossier",
-    summary: "A concise technical file covering material route, process risks, tolerances, inspection plan, and acceptance criteria.",
-    status: "Concept",
-  },
-];
-
 const defaultStudentSections: ProfileSection[] = [
   {
     title: "Summary",
@@ -423,7 +410,19 @@ people.push({
   ],
 });
 
-const currentStudents = [
+interface StudentData {
+  slug: string;
+  name: string;
+  roll: string;
+  specialization: string;
+  broadIdea: string;
+  supervisor: string;
+  internship: string;
+  projectTitle: string;
+  externalGuide?: string;
+}
+
+const currentStudents: StudentData[] = [
   {
     slug: "aniket-balaji-parnale",
     name: "Aniket Balaji Parnale",
@@ -622,7 +621,7 @@ const phdScholars = [
 ] as const;
 
 people.push(
-  ...currentStudents.map((s: any): Person => ({
+  ...currentStudents.map((s): Person => ({
     slug: s.slug,
     type: "student",
     name: s.name,
@@ -646,7 +645,7 @@ people.push(
     projects: [
       {
         title: s.projectTitle,
-        summary: `M.Tech project work: ${s.projectTitle}. Guided by ${s.supervisor}${s.hasOwnProperty('externalGuide') ? ` and ${(s as any).externalGuide}` : ""}.`,
+        summary: `M.Tech project work: ${s.projectTitle}. Guided by ${s.supervisor}${s.externalGuide ? ` and ${s.externalGuide}` : ""}.`,
         status: "Ongoing",
       }
     ],
@@ -676,7 +675,7 @@ people.push(
     internalGuide: student.internalGuide,
     placedAt: student.placedAt,
     placedRole: student.placedRole,
-    availability: student.placedAt ? "Joining soon" : "Open to roles",
+    availability: "Open to roles",
     synopsis:
       `M.Tech Manufacturing Technology (2024-2026) scholar specializing in ${student.specialization}. Thesis project: "${student.internship}" guided by ${student.internalGuide}.${student.placedAt ? ` Placed at ${student.placedAt}${student.placedRole ? ` as ${student.placedRole}` : ""}.` : ""}`,
     skills: [student.specialization, "Manufacturing Technology", "Process Analysis", "Aerospace Materials"],

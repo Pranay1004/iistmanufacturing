@@ -1,4 +1,4 @@
-import { ExternalLink, Mail, Share2, Wrench } from "lucide-react";
+import { ExternalLink, Mail, Share2 } from "lucide-react";
 import { getPeopleByType } from "@/lib/data";
 import { PageFrame } from "@/components/site-shell";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
